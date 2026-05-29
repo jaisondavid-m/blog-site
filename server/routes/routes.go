@@ -1,14 +1,13 @@
 package routes
 
 import (
-	
 	"net/http"
 	// "database/sql"
 
 	"github.com/gin-gonic/gin"
 
 	"server/config"
-
+	"server/handlers"
 )
 
 func SetupRoutes(r *gin.Engine) {
@@ -36,5 +35,11 @@ func SetupRoutes(r *gin.Engine) {
 		})
 
 	})
+
+	auth := r.Group("/api/auth")
+	{
+		auth.POST("/register",handlers.Register)
+		auth.POST("/login",handlers.Login)
+	}
 
 }
