@@ -1,0 +1,63 @@
+#======================
+#ROOT
+#======================
+
+.DS_Store
+Thumbs.db
+
+#Environment Files
+.env
+.env.local
+.env.development.local
+.env.producation.local
+
+# Logs
+*.logs
+
+#IDE
+.vscode/
+.idea/
+
+#========================
+# React / Vite
+#========================
+
+client/node_modules
+client/dist/
+client/build/
+
+#vite
+client/.vite
+
+#Coverage
+client/coverage
+
+#========================
+# Go
+#========================
+
+server/bin/
+server/vendor/
+
+#Go build files
+
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Go Workspace
+go.work
+go.work.sum
+
+# Air / Hot reload
+tmp/
+air.log
+
+#=======================
+# OS Generated
+#=======================
+
+*.swp
+*.swo
