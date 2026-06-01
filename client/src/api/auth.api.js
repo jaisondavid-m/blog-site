@@ -46,3 +46,21 @@ export const loginUser = async (data) => {
         }
     }
 }
+
+export const logoutUser = async () => {
+    try {
+        await api.post("/api/auth/logout")
+        return { success: true }
+    } catch (error) {
+        return { success: false, error: error.message }
+    }
+}
+
+export const getMe = async () => {
+    try {
+        const response = await api.get("/api/auth/me")
+        return { success: true , data: response.data }
+    } catch {
+        return { success: false }
+    }
+}

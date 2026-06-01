@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react"
-import { useSearchParams } from "react-router-dom"
-import { registerUser, loginUser } from "../api/auth.api.js"
+import { replace, useSearchParams, useNavigate } from "react-router-dom"
+import { registerUser, loginUser , getMe } from "../api/auth.api.js"
 
 import {
 
@@ -374,6 +374,8 @@ function AuthPage() {
     /* Touch helpers */
     const touchAll = (...fields) => fields.forEach((f) => f.setTouched(true))
 
+    const navigate = useNavigate()
+
     /* Handlers */
     const handleRegister = async (e) => {
 
@@ -398,8 +400,10 @@ function AuthPage() {
         const result = await registerUser(data)
         setLoading(false)
         if (result.success) {
+            const meRes = await getMe()
             addToast("Account created! Welcome", "success")
-            switchView(VIEWS.LOGIN)
+            // switchView(VIEWS.LOGIN)
+            navigate("/home",{ replace: true })
         } else {
             addToast(result.error || "Registration failed. Please try again.", "error")
         }
@@ -426,10 +430,13 @@ function AuthPage() {
         setLoading(false)
 
         if (result.success) {
+            const meRes = await getMe()
             addToast("Signed in successfully!", "success")
+            navigate("/home", { replace: true } )
         } else {
             addToast(result.error || "Invalid credentials. Please try again.", "error")
         }
+
     }
     useEffect(() => {
         const mode = searchParams.get("mode")
