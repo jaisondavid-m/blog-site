@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react"
+import { useSearchParams } from "react-router-dom"
 import { registerUser, loginUser } from "../api/auth.api.js"
 
 import {
@@ -312,13 +313,19 @@ const Feature = ({ icon: Icon, title, desc }) => (
     </div>
 )
 
+
+
 /*===================================================
     MAIN PAGE
 ===================================================*/
 
 function AuthPage() {
 
-    const [view, setView] = useState(VIEWS.LOGIN)
+    const [searchParams, setSearchParams] = useSearchParams()
+    const mode = searchParams.get("mode")
+    const [view, setView] = useState(
+        mode === "register" ? VIEWS.REGISTER : VIEWS.LOGIN
+    )
     const [loading, setLoading] = useState(false)
     const [toasts, setToasts] = useState([])
     const [errors, setErrors] = useState({})
@@ -358,6 +365,9 @@ function AuthPage() {
         if (next === view) return
         setErrors({})
         setView(next)
+        setSearchParams({
+            mode: next
+        })
         setPanelKey((k) => k + 1)
     }
 
@@ -421,7 +431,14 @@ function AuthPage() {
             addToast(result.error || "Invalid credentials. Please try again.", "error")
         }
     }
-
+    useEffect(() => {
+        const mode = searchParams.get("mode")
+        if (mode === "register") {
+            setView(VIEWS.REGISTER)
+        } else {
+            setView(VIEWS.LOGIN)
+        }
+    }, [searchParams])
     /* Render */
     return (
         <>

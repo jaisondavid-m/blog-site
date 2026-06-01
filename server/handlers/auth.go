@@ -1,9 +1,8 @@
 package handlers
 
 import (
-
-	"net/http"
 	"database/sql"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -11,7 +10,6 @@ import (
 	"server/config"
 	"server/models"
 	"server/utils"
-
 )
 
 func Register(c *gin.Context) {
@@ -81,10 +79,28 @@ func Register(c *gin.Context) {
 	}
 
 	id, _ := result.LastInsertId()
+	
+	token, err := utils.GenerateToken(uint64(id))
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError,gin.H{
+			"error":"Failed to create session",
+		})
+		return 
+	}
+
+	c.SetCookie(
+		"auth_token",
+		token,
+		3*60*60,
+		"/",
+		"",
+		false,
+		true,
+	)
 
 	c.JSON(http.StatusCreated,gin.H{
 		"message":"User registered successfully",
-		"user_id":id,
 	})
 }
 
@@ -140,8 +156,55 @@ func Login(c *gin.Context) {
 		return 
 	}
 
+	token, err := utils.GenerateToken(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError,gin.H{
+			"error":"Failed to create session",
+		})
+		return 
+	}
+
+	c.SetCookie(
+		"auth_token",
+		token,
+		3*60*60,
+		"/",
+		"",
+		false,
+		true,
+	)
+
 	c.JSON(http.StatusOK,gin.H{
 		"message":"Login Successfully",
 	})
 
 }
+
+func Me(c *gin.Context) {
+	userID := c.MustGet("user_id").(uint64)
+
+	var user models.User
+	err := config.DB.QueryRow(
+		"SELECT id, uuid, first_name, last_name, username, email FROM users WHERE id = ?",
+		userID,
+	).Scan(&user.ID, &user.UUID, &user.FirstName, &user.LastName, &user.Username, &user.Email)
+
+	if err != nil {
+		c.JSON(http.StatusNotFound,gin.H{
+			"error":"User not found",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK,gin.H{
+		"user":user,
+	})
+}
+
+func Logout(c *gin.Context) {
+	c.SetCookie("auth_token","",-1,"/","",false,true)
+	c.JSON(http.StatusOK,gin.H{
+		"message":"Logged out",
+	})
+}
+

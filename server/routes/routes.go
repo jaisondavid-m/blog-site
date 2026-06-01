@@ -8,6 +8,7 @@ import (
 
 	"server/config"
 	"server/handlers"
+	"server/middleware"
 )
 
 func SetupRoutes(r *gin.Engine) {
@@ -40,6 +41,8 @@ func SetupRoutes(r *gin.Engine) {
 	{
 		auth.POST("/register",handlers.Register)
 		auth.POST("/login",handlers.Login)
+		auth.POST("/logout",handlers.Logout)
+		auth.GET("/me",middleware.RequireAuth(), handlers.Me)
 	}
 
 }
