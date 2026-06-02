@@ -43,6 +43,8 @@ func SetupRoutes(r *gin.Engine) {
 		auth.POST("/login",handlers.Login)
 		auth.POST("/logout",handlers.Logout)
 		auth.GET("/me",middleware.RequireAuth(), handlers.Me)
+		auth.GET("/send-verification-otp",middleware.RequireAuth(),handlers.SendVerificationOTP)
+		auth.POST("/verify-email",middleware.RequireAuth(),handlers.VerifyEmail)
 	}
 
 }

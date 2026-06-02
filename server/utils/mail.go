@@ -17,8 +17,9 @@ func SendVerificationEmail(to, otp string) error {
 	m.SetHeader("Subject","Verify Your Email")
 
 	m.SetBody("text/html",
-		"<h2>Email Verification</h2?"+
+		"<h2>Email Verification</h2>"+
 		"<p>Your OTP is:</p>"+
+		"<h1>"+otp+"</h1>"+
 		"<p>This OTP expires in 2 minutes.</p>",
 	)
 

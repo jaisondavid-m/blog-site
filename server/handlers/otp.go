@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 	"server/config"
+	"server/models"
 	"server/utils"
 
 	"github.com/gin-gonic/gin"
@@ -84,10 +85,11 @@ func SendVerificationOTP(c *gin.Context) {
 
 	_, err = config.DB.Exec(
 		`UPDATE otp_requests
-		SET is_used = TRUE
+		SET verified = TRUE,
+			verified_at = NOW()
 		WHERE user_id = ?
 		AND purpose = ?
-		AND is_used = FALSE`,
+		AND verified = FALSE`,
 		userID,
 		OTPPurposeEmailVerification,
 	)
@@ -143,6 +145,95 @@ func SendVerificationOTP(c *gin.Context) {
 
 	c.JSON(http.StatusOK,gin.H{
 		"message":"OTP sent successfully",
+	})
+
+}
+
+func VerifyEmail(c *gin.Context) {
+
+	userID := c.MustGet("user_id").(uint64)
+
+	var input models.VerifyEmailInput
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest,gin.H{
+			"error":"Invalid input",
+		})
+		return
+	}
+
+	var otpID uint64
+
+	err := config.DB.QueryRow(
+		`
+		SELECT id
+		FROM otp_requests
+		WHERE user_id = ?
+		AND otp_code = ?
+		AND purpose = ?
+		AND verified = FALSE
+		AND expires_at > NOW()
+		ORDER BY id DESC
+		LIMIT 1
+		`,
+		userID,
+		input.OTP,
+		OTPPurposeEmailVerification,
+	).Scan(&otpID)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest,gin.H{
+			"error":"Invalid or expired OTP",
+		})
+		return
+	}
+
+	tx, err := config.DB.Begin()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError,gin.H{
+			"error":"Failed to start transaction",
+		})
+		return
+	}
+
+	defer tx.Rollback()
+
+	_, err = tx.Exec(`
+		UPDATE users
+		SET
+			email_verified = TRUE,
+			email_verified_at = NOW()
+		WHERE id = ?
+	`,userID)
+
+	if err != nil {
+		tx.Rollback()
+		return
+	}
+
+	_, err = tx.Exec(`
+		UPDATE otp_requests
+		SET
+			verified = TRUE,
+			verified_at = NOW()
+		WHERE id = ?
+	`,otpID)
+
+	if err != nil {
+		tx.Rollback()
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		c.JSON(http.StatusInternalServerError,gin.H{
+			"error":"Failed to commit transaction",
+		})
+		return
+	}
+	
+	c.JSON(http.StatusOK,gin.H{
+		"message":"Email verified successfully",
 	})
 
 }
