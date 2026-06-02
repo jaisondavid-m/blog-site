@@ -8,9 +8,43 @@ export function AuthProvider({ children }) {
     const [user, setUser] = useState(undefined)
 
     useEffect(() => {
-        getMe().then((res) => {
-            setUser(res.success ? res.data.user : null)
-        })
+
+        let mounted = true
+
+        const fetchUser = async () => {
+
+            try {
+
+                const res = await getMe()
+
+                if (!mounted) return
+
+                setUser(
+                    res.success
+                        ? res.data.user
+                        : null
+                )
+
+            } catch {
+                
+                if (!mounted) return
+
+                setUser(null)
+
+            }
+
+        }
+
+        fetchUser()
+
+        // getMe().then((res) => {
+        //     setUser(res.success ? res.data.user : null)
+        // })
+
+        return () => {
+            mounted = false
+        }
+
     },[])
 
     return (

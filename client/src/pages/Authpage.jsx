@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react"
 import { replace, useSearchParams, useNavigate } from "react-router-dom"
 import { registerUser, loginUser , getMe } from "../api/auth.api.js"
+import { useAuth } from "../context/AuthContext.jsx"
 
 import {
 
@@ -321,6 +322,8 @@ const Feature = ({ icon: Icon, title, desc }) => (
 
 function AuthPage() {
 
+    const { setUser } = useAuth()
+
     const [searchParams, setSearchParams] = useSearchParams()
     const mode = searchParams.get("mode")
     const [view, setView] = useState(
@@ -401,9 +404,12 @@ function AuthPage() {
         setLoading(false)
         if (result.success) {
             const meRes = await getMe()
+            if (meRes.data.user) {
+                setUser(meRes.data.user)
+            }
             addToast("Account created! Welcome", "success")
             // switchView(VIEWS.LOGIN)
-            navigate("/home",{ replace: true })
+            navigate("/home",{ replace: true }) //navigate to home page after register
         } else {
             addToast(result.error || "Registration failed. Please try again.", "error")
         }
@@ -431,6 +437,9 @@ function AuthPage() {
 
         if (result.success) {
             const meRes = await getMe()
+            if (meRes.success) {
+                setUser(meRes.data.user)
+            }
             addToast("Signed in successfully!", "success")
             navigate("/home", { replace: true } )
         } else {
