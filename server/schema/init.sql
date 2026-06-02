@@ -44,6 +44,24 @@ CREATE TABLE otp_requests (
         ON DELETE CASCADE
 );
 
+-- ALTER TABLE otp_requests
+-- ADD INDEX idx_otp_code (otp_code);
+
+-- ALTER TABLE users
+-- ADD email_verified BOOLEAN DEFAULT FALSE,
+-- ADD email_verified_at TIMESTAMP NULL;
+
+CREATE INDEX idx_otp_code
+ON otp_requests(otp_code);
+
+CREATE INDEX idx_otp_verify
+ON otp_requests(
+    user_id,
+    otp_code,
+    purpose,
+    verified
+);
+
 CREATE INDEX idx_users_email
 ON users(email);
 
