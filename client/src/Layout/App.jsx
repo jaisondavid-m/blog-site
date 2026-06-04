@@ -6,6 +6,7 @@ import AuthPage from '../pages/Authpage.jsx'
 import NotFoundPage from "../components/NotFoundPage.jsx"
 import Test from "../pages/Test.jsx"
 import Home from "../pages/Home.jsx"
+import Profile from "../pages/Profile.jsx"
 
 import PublicRoute from "../components/PublicRoute.jsx"
 import ProtectedRoute from "../components/ProtectedRoute.jsx"
@@ -22,6 +23,7 @@ function App() {
 
           <Route element={<ProtectedRoute/>}>
             <Route path='/home' element={<Home />} />
+            <Route path='/profile' element={<Profile/>} />
             <Route path='/test' element={<Test/>} />
           </Route>
 
