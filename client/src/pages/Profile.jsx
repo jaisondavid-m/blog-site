@@ -8,6 +8,7 @@ import {
 } from "react-icons/fi"
 import { getMe } from "../api/auth.api.js"
 import { useAuth } from "../context/AuthContext.jsx"
+import api from "../api/axios.js"
 
 const initials = (first, last) =>
     `${first?.[0] ?? ""}${last?.[0] ?? ""}`.toUpperCase() || "?"
@@ -21,22 +22,25 @@ const avatarGradient = (name = "") => {
         "from-pink-500 to-fuchsia-500",
         "from-amber-400 to-orange-500"
     ]
-    const idx = (name.charCodeAt(0) || 0) & palettes.length
+    const idx = (name.charCodeAt(0) || 0) % palettes.length
     return palettes[idx]
 }
 
 const StatCard = ({ icon: Icon, label, value, accent }) => {
-    <div className="bg-white rounded-2xl border border-gray-100 px-5 py-5 flex items-centter gap-4 shadow-sm hover:shadow-md transition-shadow duration-200" >
-        <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${accent}`} >
-            <Icon size={18} className="text-white" />
+    return (
+        <div className="bg-white rounded-2xl border border-gray-100 px-5 py-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow duration-200" >
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${accent}`} >
+                <Icon size={18} className="text-white" />
+            </div>
+            <div>
+                <p className="text-2xl font-extrabold text-gray-900 font-['Bricolage_Grotesque'] leading-none">{value}</p>
+                <p className="text-[12.5px] text-gray-500 mt-0.5 font-medium" >
+                    {label}
+                </p>
+            </div>
         </div>
-        <div>
-            <p className="text-2xl font-extrabold text-gray-900 font-['Bricolage_Grotesque'] leading-none">{value}</p>
-            <p className="text-[12.5px] text-gray-500 mt-0.5 font-medium" >
-                {label}
-            </p>
-        </div>
-    </div>
+    )
+
 }
 
 const InfoRow = ({ icon: Icon, label, value }) => (
@@ -45,7 +49,7 @@ const InfoRow = ({ icon: Icon, label, value }) => (
             <Icon size={14} className="text-indigo-500" />
         </div>
         <div className="flex-1 min-w-0" >
-            <p className="text-[11px] font-bold tracking-widest uppercase text-gray=400 mb-0.5" >{label}</p>
+            <p className="text-[11px] font-bold tracking-widest uppercase text-gray-400 mb-0.5" >{label}</p>
             <p className="text-[14.5px] text-gray-800 font-semibold truncate" >
                 {value || "-"}
             </p>
@@ -65,6 +69,58 @@ function Profile() {
     const [user, setLocal] = useState(ctxUser ?? null)
     const [loading, setLoading] = useState(!ctxUser)
     const [error, setError] = useState(null)
+
+    const [otpModal, setOtpModal] = useState(false)
+    const [otp, setOtp] = useState("")
+    const [otpSending, setOtpSending] = useState(false)
+    const [otpVerifying, setOtpVerifying] = useState(false)
+    const [otpError, setOtpError] = useState(null)
+    const [otpSuccess, setOtpSuccess] = useState(false)
+    const [otpExpiry, setOtpExpiry] = useState(null)
+    const [timeLeft, setTimeLeft] = useState(120)
+
+    const handleSendOTP = async () => {
+
+        setOtpSending(true)
+        setOtpError(null)
+
+        try {
+            
+            const res = await api.get("/api/auth/send-verification-otp")
+
+            if (res.data) {
+                setOtpExpiry(Date.now() + 120_000)
+                setTimeLeft(120)
+                setOtpModal(true)
+                setOtp("")
+                setOtpSuccess(false)
+            }
+
+        } catch (err) {
+            setOtpError(err.response?.data?.error || "Failed to send OTP")
+        } finally {
+            setOtpSending(false)
+        }
+    }
+
+    const handleVerifyOTP = async () => {
+
+        setOtpVerifying(true)
+        setOtpError(null)
+
+        try {
+            await api.post("/api/auth/verify-email",{ otp })
+            setOtpSuccess(true)
+            setLocal(prev => ({ ...prev, EmailVerified: true }))
+            setUser(prev => ({ ...prev, EmailVerified: true }))
+            setTimeout(() => setOtpModal(false),1500)
+        } catch (err) {
+            setOtpError(err.response?.data?.error)
+        } finally {
+            setOtpVerifying(false)
+        }
+
+    }
 
     useEffect(() => {
         if (ctxUser) {
@@ -86,6 +142,18 @@ function Profile() {
             })()
         return () => { cancelled = true }
     }, [ctxUser, setUser])
+
+    useEffect(() => {
+
+        if (!otpModal || !otpExpiry) return 
+
+        const interval = setInterval(() => {
+            const secs = Math.max(0, Math.round((otpExpiry-Date.now()) / 1000))
+            setTimeLeft(secs)
+            if (secs === 0) setOtpModal(false)  
+        },1000)
+        return () => clearInterval(interval)
+    },[otpModal,otpExpiry])
 
     const gradient = avatarGradient(user?.FirstName)
 
@@ -144,7 +212,7 @@ function Profile() {
                         <div>
                             <h1 className="font-['Bricolage_Grotesque'] text-2xl font-extrabold text-gray-900 tracking-tight" >My Profile</h1>
                             <p className="text-sm text-gray-400 mt-0.5" >
-                                Manage your account detils
+                                Manage your account details
                             </p>
                         </div>
                         <button
@@ -165,7 +233,7 @@ function Profile() {
                                 <div className="flex flex-col items-center mb-6" >
                                     <div className={`w-24 h-24 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-4 shadow-lg`} >
                                         <span className="text-white text-3xl font-extrabold font-['Bricolage_Grotesque'] select-none" >
-                                            {initials(user?.first_name, user?.LastName)}
+                                            {initials(user?.FirstName, user?.LastName)}
                                         </span>
                                     </div>
                                     <h2 className="font-['Bricolage_Grotesque'] text-[20px] font-extrabold text-gray-900 tracking-tight text-center leading-tight" >
@@ -177,11 +245,10 @@ function Profile() {
                                         <span className="text-[11px] font-bold text-emerald-600 tracking-wide" >Active Account</span>
                                     </div> */}
                                     <div
-                                        className={`mt-3 flex items-center gap-1.5 rounded-full px-3 py-1 border ${
-                                            user?.EmailVerified
+                                        className={`mt-3 flex items-center gap-1.5 rounded-full px-3 py-1 border ${user?.EmailVerified
                                                 ? "bg-emerald-50 border-emerald-100"
                                                 : "bg-amber-50 border-amber-100"
-                                        }`}
+                                            }`}
                                     >
                                         <FiCheckCircle
                                             size={11}
@@ -192,15 +259,24 @@ function Profile() {
                                             }
                                         />
                                         <span
-                                            className={`text-[11px] font-bold tracking-wide ${
-                                                user?.EmailVerified
+                                            className={`text-[11px] font-bold tracking-wide ${user?.EmailVerified
                                                     ? "text-emerald-600"
                                                     : "text-amber-600"
-                                            }`}
+                                                }`}
                                         >
                                             {user?.EmailVerified ? "Verified" : "Not Verified"}
                                         </span>
                                     </div>
+                                    {!user?.EmailVerified && (
+                                        <button
+                                            onClick={handleSendOTP}
+                                            disabled={otpSending}
+                                            className="mt-3 flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-xl text-xs font-semibold transition"
+                                        >
+                                            {otpSending ? <FiLoader size={12} className="animate-spin" /> : <FiMail size={12} /> }
+                                            { otpSending ? "Sending..." : "Verify Now" }
+                                        </button>
+                                    )}
                                 </div>
                                 <div>
                                     <InfoRow icon={FiUser} label="Full Name" value={displayName} />
@@ -241,6 +317,65 @@ function Profile() {
                     </div>
                 </div>
             </div>
+            {otpModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" >
+                    <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 w-full max-w-sm mx-4 relative" >
+                        <button
+                            onClick={() => setOtpModal(false)}
+                            className="absolute top-4 right-4 text-gray-300 hover:text-gray-500 transition text-xl font-bold"
+                        >
+                            ✕
+                        </button>
+                        {otpSuccess ? (
+                            <div className="flex flex-col items-center py-4" >
+                                <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mb-4" >
+                                    <FiCheckCircle size={26} className="text-emerald-500" />
+                                </div>
+                                <h3 className="font-['Bricolage_Grotesque'] text-xl font-extrabold text-gray-900" >Verified!</h3>
+                                <p className="text-sm text-gray-400 mt-1" >Your email is now verified</p>
+                            </div>
+                        ) : (
+                            <div>
+                                <div className="flex flex-col items-center mb-6" >
+                                    <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center mb-4" >
+                                        <FiMail size={24} className="text-indigo-500" />
+                                    </div>
+                                    <h3 className="font-['Bricolage_Grotesque'] text-xl font-extrabold text-gray-900" >Enter OTP</h3>
+                                    <p className="text-sm text-gray-400 mt-1 text-center" >
+                                        A 6-digit code was sent to<br />
+                                        <span className="font-semibold text-gray-700">{user?.Email}</span>
+                                    </p>
+                                </div>
+                                {/* Count down */}
+                                <div className={`text-center text-xs font-bold mb-4 ${timeLeft <= 30 ? "text-red-500" : "text-gray-400"}`} >
+                                    Expires in {Math.floor(timeLeft/60)}:{String(timeLeft%60).padStart(2,"0")}
+                                </div>
+                                <input
+                                    type="text" 
+                                    maxLength={6}
+                                    value={otp}
+                                    onChange={e => setOtp(e.target.value.replace(/\D/g,""))}
+                                    placeholder="000000"
+                                    className="w-full text-center text-2xl font-extrabold tracking-[0.5em] border-2 border-gray-200 focus:border-indigo-400 rounded-2xl py-4 outline-none
+                                    transition font-['Bricolage_Grotesque'] mb-4"
+                                />
+                                {otpError && (
+                                    <p className="text-xs text-red-500 text-center mb-3 font-semibold" >{otpError}</p>
+                                )}
+                                <button
+                                    onClick={handleVerifyOTP}
+                                    disabled={otp.length !== 6 || otpVerifying}
+                                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl
+                                    font-semibold text-sm transition flex items-center justify-center gap-2"
+                                >
+                                    {otpVerifying && <FiLoader size={14} className="animate-spin" />}
+                                    {otpVerifying ? "Verifying..." : "Verify Email"}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </>
     )
 

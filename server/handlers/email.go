@@ -20,7 +20,7 @@ func EmailVerificationStatus(c *gin.Context) {
 		FROM users
 		WHERE id = ?`,
 		userID,
-	).Scan(&emailVerified)
+	).Scan(&email,&emailVerified)
 
 	if err == sql.ErrNoRows {
 		c.JSON(http.StatusNotFound,gin.H{
