@@ -20,5 +20,6 @@ type User struct {
 	LastName 		string
 	Username 		string
 	Email 			string
+	EmailVerified	bool
 	PasswordHash 	string
 }
