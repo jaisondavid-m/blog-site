@@ -172,9 +172,34 @@ function Profile() {
                                         {displayName}
                                     </h2>
                                     <p className="text-sm text-gray-400 mt-1 font-medium" >@{user?.Username}</p>
-                                    <div className="mt-3 flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 rounded-full px-3 py-1" >
+                                    {/* <div className="mt-3 flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 rounded-full px-3 py-1" >
                                         <FiCheckCircle size={11} className="text-emerald-500" />
                                         <span className="text-[11px] font-bold text-emerald-600 tracking-wide" >Active Account</span>
+                                    </div> */}
+                                    <div
+                                        className={`mt-3 flex items-center gap-1.5 rounded-full px-3 py-1 border ${
+                                            user?.EmailVerified
+                                                ? "bg-emerald-50 border-emerald-100"
+                                                : "bg-amber-50 border-amber-100"
+                                        }`}
+                                    >
+                                        <FiCheckCircle
+                                            size={11}
+                                            className={
+                                                user?.EmailVerified
+                                                    ? "text-emerald-500"
+                                                    : "text-amber-500"
+                                            }
+                                        />
+                                        <span
+                                            className={`text-[11px] font-bold tracking-wide ${
+                                                user?.EmailVerified
+                                                    ? "text-emerald-600"
+                                                    : "text-amber-600"
+                                            }`}
+                                        >
+                                            {user?.EmailVerified ? "Verified" : "Not Verified"}
+                                        </span>
                                     </div>
                                 </div>
                                 <div>
