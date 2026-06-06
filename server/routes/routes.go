@@ -45,6 +45,7 @@ func SetupRoutes(r *gin.Engine) {
 		auth.GET("/me",middleware.RequireAuth(), handlers.Me)
 		auth.GET("/send-verification-otp",middleware.RequireAuth(),handlers.SendVerificationOTP)
 		auth.POST("/verify-email",middleware.RequireAuth(),handlers.VerifyEmail)
+		auth.GET("/email-verification-status",middleware.RequireAuth(),handlers.EmailVerificationStatus)
 	}
 
 }
