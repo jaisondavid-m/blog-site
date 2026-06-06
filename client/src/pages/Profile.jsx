@@ -1,10 +1,10 @@
-import React, { useEffect , useState } from "react"
+import React, { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
-    FiUser , FiMail , FiAtSign , FiCalendar , FiEdit2,
-    FiShield , FiLoader , FiAlertCircle , FiFileText,
-    FiHeart , FiBookmark , FiTrendingUp , FiChevronRight,
-    FiZap , FiCheckCircle
+    FiUser, FiMail, FiAtSign, FiCalendar, FiEdit2,
+    FiShield, FiLoader, FiAlertCircle, FiFileText,
+    FiHeart, FiBookmark, FiTrendingUp, FiChevronRight,
+    FiZap, FiCheckCircle
 } from "react-icons/fi"
 import { getMe } from "../api/auth.api.js"
 import { useAuth } from "../context/AuthContext.jsx"
@@ -25,7 +25,7 @@ const avatarGradient = (name = "") => {
     return palettes[idx]
 }
 
-const StatCard = ({ icon: Icon , label , value , accent }) => {
+const StatCard = ({ icon: Icon, label, value, accent }) => {
     <div className="bg-white rounded-2xl border border-gray-100 px-5 py-5 flex items-centter gap-4 shadow-sm hover:shadow-md transition-shadow duration-200" >
         <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${accent}`} >
             <Icon size={18} className="text-white" />
@@ -39,7 +39,7 @@ const StatCard = ({ icon: Icon , label , value , accent }) => {
     </div>
 }
 
-const InfoRow = ({ icon: Icon , label, value }) => (
+const InfoRow = ({ icon: Icon, label, value }) => (
     <div className="flex items-center gap-4 py-3.5 border-b border-gray-50 last:border-0" >
         <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0" >
             <Icon size={14} className="text-indigo-500" />
@@ -59,7 +59,7 @@ const Skeleton = ({ className }) => (
 
 function Profile() {
 
-    const { user: ctxUser , setUser } = useAuth()
+    const { user: ctxUser, setUser } = useAuth()
     const navigate = useNavigate()
 
     const [user, setLocal] = useState(ctxUser ?? null)
@@ -72,20 +72,20 @@ function Profile() {
             return
         }
         let cancelled = false
-        ;(async () => {
-            setLoading(true)
-            const res = await getMe()
-            if (cancelled) return
-            if (res.success) {
-                setLocal(res.data.user)
-                setUser(res.data.user)
-            } else {
-                setError("Could not load profile. Please sign in again.")
-            }
-            setLoading(false)
-        })()
+            ; (async () => {
+                setLoading(true)
+                const res = await getMe()
+                if (cancelled) return
+                if (res.success) {
+                    setLocal(res.data.user)
+                    setUser(res.data.user)
+                } else {
+                    setError("Could not load profile. Please sign in again.")
+                }
+                setLoading(false)
+            })()
         return () => { cancelled = true }
-    },[ctxUser,setUser])
+    }, [ctxUser, setUser])
 
     const gradient = avatarGradient(user?.FirstName)
 
@@ -96,11 +96,11 @@ function Profile() {
                     <Skeleton className="w-24 h-24 rounded-2xl mx-auto mb-4" />
                     <Skeleton className="h-5 w-32 mx-auto mb-2" />
                     <Skeleton className="h-3.5 w-24 mx-auto mb-8" />
-                    {[1,2,3,4].map(i => <Skeleton key={i} className="h-12 mb-3" />)}
+                    {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-12 mb-3" />)}
                 </div>
                 <div className="flex flex-col gap-6" >
                     <div className="grid grid-cols-2 gap-4" >
-                        {[1,2,3,4].map(i => <Skeleton key={i} className="h-20" />)}
+                        {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-20" />)}
                     </div>
                     <Skeleton className="flex-1 rounded-3xl" />
                 </div>
@@ -117,7 +117,7 @@ function Profile() {
                 <h3 className="font-['Bricolage_Grotesque'] text-xl font-bold text-gray-900 mb-2" >Something went wrong</h3>
                 <p className="text-sm text-gray-500 mb-6" >{error}</p>
                 <button
-                    onClick={() => navigate("/auth?mode-login",{ replace: true })}
+                    onClick={() => navigate("/auth?mode-login", { replace: true })}
                     className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition"
                 >
                     Sign in again
@@ -185,20 +185,40 @@ function Profile() {
                                 </div>
                             </div>
                         </div>
-                        <div className="fade-up fade-up-1 grid grid-cols-2 gap-4" >
-                            <StatCard icon={FiFileText} label="Post Written" value="0" accent="bg-indigo-500" />
-                            <StatCard icon={FiHeart} label="Likes Received" value="0" accent="bg-rose-500" />
-                            <StatCard icon={FiBookmark} label="Profile Views" value="0" accent="bg-emerald-500" />
-                        </div>
-                        <div className="fade-up fade-up-3 bg-white rounded-3xl border border-gray-100 shadow-sm p-7" >
-
+                        <div className="flex flex-col gap-5" >
+                            <div className="fade-up fade-up-1 grid grid-cols-2 gap-4" >
+                                <StatCard icon={FiFileText} label="Post Written" value="0" accent="bg-indigo-500" />
+                                <StatCard icon={FiHeart} label="Likes Received" value="0" accent="bg-rose-500" />
+                                <StatCard icon={FiBookmark} label="Profile Views" value="0" accent="bg-emerald-500" />
+                            </div>
+                            <div className="fade-up fade-up-2 bg-white rounded-3xl border border-gray-100 shadow-sm p-7" >
+                                <h3 className="font-['Bricolage_Grotesque'] text-[17px] font-extrabold text-gray-900 mb-5 flex items-center gap-2" >
+                                    <FiZap size={16} className="text-indigo-500" />
+                                    Recent Activity
+                                </h3>
+                                {/* Empty state */}
+                                <div className="flex flex-col items-center justify-center py-10 text-center" >
+                                    <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center mb-4" >
+                                        <FiFileText size={22} className="text-gray-300" />
+                                    </div>
+                                    <p className="text-[14px] font-bold text-gray-400" >No Posts Yet</p>
+                                    <p className="text-[12.5px] text-gray-300 mt-1" >Your published stories will appear here</p>
+                                    <button
+                                        onClick={() => navigate("/write")}
+                                        className="mt-5 flex items-center gap-1.5 px-5 py-2.5 bg-indigo-500 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition"
+                                    >
+                                        Write your first Post
+                                        <FiChevronRight size={14} />
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </>
     )
- 
+
 }
 
 export default Profile
