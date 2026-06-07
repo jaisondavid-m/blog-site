@@ -13,12 +13,18 @@ function NavBar() {
 
     const [mobileOpen, setMobileOpen] = useState(false)
     const [loading, setLoading] = useState(false)
+    const [showLogoutModal, setShowLogoutModal] = useState(false)
 
     const handleLogout = async () => {
         try {
+
             setLoading(true)
+
             await logoutUser()
+
+            setShowLogoutModal(false)
             setUser(null)
+
             navigate("/auth?mode=login", { replace: true })
         } catch (err) {
             console.error(err)
@@ -49,7 +55,7 @@ function NavBar() {
                         <nav className="hidden md:flex items-center gap-8" >
 
                             {links.map((link) => {
-                                const active = location.pathname
+                                const active = location.pathname === link.path
                                 return (
                                     <Link
                                         key={link.path}
@@ -69,9 +75,9 @@ function NavBar() {
                         {/* Desktop Logout */}
                         <div className="hidden md:block">
                             <button
-                                onClick={handleLogout}
+                                onClick={() => setShowLogoutModal(true)}
                                 disabled={loading}
-                                className="flex items-center gap-2 px-4 py-2 rounded-g border border-gray-300 text-gray-700 hovere:bg-gray-50
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50
                                 transition disabled:opacity-60"
                             >
                                 <FiLogOut size={16} />
@@ -123,7 +129,7 @@ function NavBar() {
                             })}
                             <div className="mt-2 pt-4 border-t border-gray-200">
                                 <button
-                                    onClick={handleLogout}
+                                    onClick={() => setShowLogoutModal(true)}
                                     disabled={loading}
                                     className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg
                                     border border-gray-300 text-gray-700 hover:bg-gray-50 transition disabled:opacity-60"
@@ -136,6 +142,33 @@ function NavBar() {
                                 </button>
                             </div>
                         </nav>
+                    </div>
+                </div>
+            )}
+            {showLogoutModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4" >
+                    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" >
+                        <h2 className="text-xl font-semibold text-gray-900" >
+                            Confirm LogOut
+                        </h2>
+                        <p className="mt-2 text-sm text-gray-600" >
+                            Are you sure want to logout from your account?
+                        </p>
+                        <div className="mt-6 flex justify-end gap-3" >
+                            <button
+                                onClick={() => setShowLogoutModal(false)}
+                                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleLogout}
+                                disabled={loading}
+                                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
+                            >
+                                {loading ? "Logging out..." : "Logout" }
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
