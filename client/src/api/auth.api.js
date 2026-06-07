@@ -64,3 +64,25 @@ export const getMe = async () => {
         return { success: false }
     }
 }
+
+export const updateProfile = async (data) => {
+    try {
+        const res = await api.put("/api/auth/profile",data)
+        return { success: true, data: res.data }
+    } catch (error) {
+        return { success: false, error: error.response?.data?.error || "Failed to update profile" }
+    }
+}
+
+export const uploadAvatar = async (file) => {
+    try {
+        const form = new FormData()
+        form.append("avatar",file)
+        const res = await api.post("/api/auth/avatar",form, {
+            headers: { "Content-Type": "multipart/form-data" }
+        })
+        return { success: true, data: res.data }
+    } catch (error) {
+        return { success: false, error: error.response?.data?.error || "Failed to upload avatar image" }
+    }
+}
