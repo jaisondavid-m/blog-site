@@ -10,6 +10,7 @@ import Profile from "../pages/Profile.jsx"
 
 import PublicRoute from "../components/PublicRoute.jsx"
 import ProtectedRoute from "../components/ProtectedRoute.jsx"
+import MainLayout from "../Layout/MainLayout.jsx"
 
 function App() {
   return (
@@ -17,17 +18,19 @@ function App() {
       <BrowserRouter>
         <Routes>
 
-          <Route element={<PublicRoute/>}>
+          <Route element={<PublicRoute />}>
             <Route path='/auth' element={<AuthPage />} />
           </Route>
 
-          <Route element={<ProtectedRoute/>}>
-            <Route path='/home' element={<Home />} />
-            <Route path='/profile' element={<Profile/>} />
-            <Route path='/test' element={<Test/>} />
+          <Route element={<ProtectedRoute />}>
+            <Route element={<MainLayout/>}>
+              <Route path='/home' element={<Home />} />
+              <Route path='/profile' element={<Profile />} />
+              <Route path='/test' element={<Test />} />
+            </Route>
           </Route>
 
-          <Route path='/' element={ <Navigate to="/home" replace /> } />
+          <Route path='/' element={<Navigate to="/home" replace />} />
 
           <Route path='*' element={<NotFoundPage />} />
 
