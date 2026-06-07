@@ -18,6 +18,8 @@ func main() {
 
 	r := gin.Default()
 
+	r.Static("/uploads", "./uploads")
+
 	middleware.SetupCors(r)
 
 	routes.SetupRoutes(r)

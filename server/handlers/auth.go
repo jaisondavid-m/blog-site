@@ -185,9 +185,9 @@ func Me(c *gin.Context) {
 
 	var user models.User
 	err := config.DB.QueryRow(
-		"SELECT id, uuid, first_name, last_name, username, email, email_verified FROM users WHERE id = ?",
+		"SELECT id, uuid, first_name, last_name, username, email, email_verified, avatar_url FROM users WHERE id = ?",
 		userID,
-	).Scan(&user.ID, &user.UUID, &user.FirstName, &user.LastName, &user.Username, &user.Email, &user.EmailVerified)
+	).Scan(&user.ID, &user.UUID, &user.FirstName, &user.LastName, &user.Username, &user.Email, &user.EmailVerified, &user.AvatarURL)
 
 	if err != nil {
 		c.JSON(http.StatusNotFound,gin.H{
