@@ -50,4 +50,12 @@ func SetupRoutes(r *gin.Engine) {
 		auth.POST("/avatar",middleware.RequireAuth(), handlers.UploadAvatar)
 	}
 
+	fp := auth.Group("/forgot-password")
+	{
+		fp.POST("/find-account",handlers.FindAccount)
+		fp.POST("/send-otp",handlers.SendPasswordResetOTP)
+		fp.POST("/verify-otp",handlers.VerifyPasswordResetOTP)
+		fp.POST("/reset",handlers.ResetPassword)
+	}
+
 }

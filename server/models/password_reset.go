@@ -1,7 +1,7 @@
 package models
 
 type FindAccountInput struct {
-	Query string `json:"query" binding:"required"`
+	Email string `json:"query" binding:"required"`
 }
 
 type SendResetOTPInput struct {
@@ -17,3 +17,4 @@ type ResetPasswordInput struct {
 	ResetToken string `json:"reset_token" binding:"required"`
 	NewPassword string `json:"new_password" binding:"required"`
 }
+
