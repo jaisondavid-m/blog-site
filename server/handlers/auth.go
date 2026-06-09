@@ -120,22 +120,37 @@ func Login(c *gin.Context) {
 		passwordHash 	string
 	)
 
-	query := `
-	SELECT
-		id,
-		password_hash
-	FROM users
-	WHERE username = ?
-	LIMIT 1
-	`
+	// query := `
+	// SELECT
+	// 	id,
+	// 	password_hash
+	// FROM users
+	// WHERE username = ?
+	// LIMIT 1
+	// `
+
+	// err := config.DB.QueryRow(
+	// 	query,
+	// 	input.Username,
+	// ).Scan(
+	// 	&userID,
+	// 	&passwordHash,
+	// )
+
+	identifier := input.Username
+
+	if identifier == "" {
+		identifier = input.Email
+	}
 
 	err := config.DB.QueryRow(
-		query,
-		input.Username,
-	).Scan(
-		&userID,
-		&passwordHash,
-	)
+		`SELECT id, password_hash
+		FROM users
+		WHERE (username = ? OR email = ?)
+		AND deleted_at IS NULL
+		LIMIT 1`,
+		identifier, identifier,
+	).Scan(&userID, &passwordHash)
 
 	if err != nil {
 		c.JSON(http.StatusUnauthorized,gin.H{

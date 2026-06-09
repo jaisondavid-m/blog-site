@@ -50,10 +50,12 @@ const validateForm = (view, fields) => {
         })
         if (!fields.agreed) errors.agreed = "You must agree to continue"
     } else {
-        ["username", "password"].forEach((key) => {
-            const err = validators[key]?.(fields[key], fields)
-            if (err) errors[key] = err
-        })
+        if (!fields.username?.trim()) errors.username = "Username or email is required"
+        if (!fields.password) errors.password = "Password is required"
+        // ["username", "password"].forEach((key) => {
+        //     const err = validators[key]?.(fields[key], fields)
+        //     if (err) errors[key] = err
+        // })
     }
     return errors
 }
@@ -555,7 +557,7 @@ function AuthPage() {
                                     </div>
                                     <form onSubmit={handleLogin} noValidate className="flex flex-col gap-2.5">
                                         <Feild
-                                            label="Username"
+                                            label="Username or Email"
                                             icon={FiUser}
                                             name="username"
                                             field={logUsername}
