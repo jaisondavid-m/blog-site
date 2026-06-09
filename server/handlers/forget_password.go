@@ -1,20 +1,19 @@
 package handlers
 
 import (
-
 	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
 	"fmt"
 	"net/http"
+	"os"
 	"server/config"
 	"server/models"
 	"server/utils"
 	"strings"
-	"time"
+	// "time"
 
 	"github.com/gin-gonic/gin"
-
 )
 
 const (
@@ -164,7 +163,15 @@ func SendPasswordResetOTP(c *gin.Context) {
 		return
 	}
 
+	fmt.Println("userid: ", input.UserID)
+	fmt.Println("email: ",email)
+	// fmt.Println("otp: ",otp)
+	fmt.Println("SMTP host =",os.Getenv("SMTP_HOST"))
+	fmt.Println("SMTP port:",os.Getenv("SMTP_PORT"))
+	fmt.Println("SMTP email:",os.Getenv("SMTP_EMAIL"))
+
 	if err := utils.SendPasswordResetEmail(email, otp); err != nil {
+		fmt.Println("SEND EMAIL error: ",err)
 		config.DB.Exec(
 			"DELETE FROM otp_requests WHERE user_id = ? AND otp_code = ?",
 			input.UserID, otp,
@@ -241,16 +248,17 @@ func VerifyPasswordResetOTP(c *gin.Context) {
 		return
 	}
 
-	expiresAt := time.Now().Add(time.Duration(ResetTokenExpiryMinutes) * time.Minute)
+	// expiresAt := time.Now().Add(time.Duration(ResetTokenExpiryMinutes) * time.Minute)
 
 	_, err = config.DB.Exec(
 		`INSERT INTO password_reset_tokens (user_id, token, expires_at)
-		VALUES (?, ?, ?)
-		ON DUPLICATE KEY UPDATE token = VALUES(token), expires_at = VALUES(expires_at), user = FALSE`,
-		input.UserID, resetToken, expiresAt,
+		VALUES (?, ?, DATE_ADD(NOW(), INTERVAL ? MINUTE))
+		ON DUPLICATE KEY UPDATE token = VALUES(token), expires_at = VALUES(expires_at), used = FALSE`,
+		input.UserID, resetToken, ResetTokenExpiryMinutes,
 	)
 
 	if err != nil {
+		fmt.Println("store reset token err: ",err)
 		c.JSON(http.StatusInternalServerError,gin.H{
 			"error":"Failed to store reset token",
 		})
@@ -291,7 +299,7 @@ func ResetPassword(c *gin.Context) {
 		FROM password_reset_tokens
 		WHERE token = ?
 			AND used = FALSE
-			AND expires_at = NOW()
+			AND expires_at > NOW()
 		LIMIT 1`,
 		input.ResetToken,
 	).Scan(&tokenID, &userID)

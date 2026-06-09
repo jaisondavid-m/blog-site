@@ -83,5 +83,8 @@ CREATE TABLE password_reset_tokens (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+ALTER TABLE password_reset_tokens
+ADD UNIQUE KEY uq_password_reset_user (user_id);
+
 CREATE INDEX idx_prt_token ON password_reset_tokens(token);
 CREATE INDEX idx_prt_user_id ON password_reset_tokens(user_id);

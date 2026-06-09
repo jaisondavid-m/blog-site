@@ -1,7 +1,7 @@
 package models
 
 type FindAccountInput struct {
-	Email string `json:"query" binding:"required"`
+	Email string `json:"email" binding:"required"`
 }
 
 type SendResetOTPInput struct {

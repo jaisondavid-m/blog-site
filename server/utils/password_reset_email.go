@@ -32,9 +32,9 @@ func SendPasswordResetEmail(to, otp string) error {
 	)
 
 	d := gomail.NewDialer(
-		os.Getenv("STMP_HOST"),
+		os.Getenv("SMTP_HOST"),
 		587,
-		os.Getenv("STMP_EMAIL"),
+		os.Getenv("SMTP_EMAIL"),
 		os.Getenv("SMTP_PASSWORD"),
 	)
 

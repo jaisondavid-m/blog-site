@@ -7,6 +7,7 @@ import NotFoundPage from "../components/NotFoundPage.jsx"
 import Test from "../pages/Test.jsx"
 import Home from "../pages/Home.jsx"
 import Profile from "../pages/Profile.jsx"
+import ForgetPassword from "../pages/ForgetPassword.jsx"
 
 import PublicRoute from "../components/PublicRoute.jsx"
 import ProtectedRoute from "../components/ProtectedRoute.jsx"
@@ -20,6 +21,7 @@ function App() {
 
           <Route element={<PublicRoute />}>
             <Route path='/auth' element={<AuthPage />} />
+            <Route path='/recover' element={<ForgetPassword/>} />
           </Route>
 
           <Route element={<ProtectedRoute />}>

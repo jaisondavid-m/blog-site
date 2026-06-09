@@ -579,7 +579,11 @@ function AuthPage() {
                                                 <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
                                                 Remember me for 30 days
                                             </label>
-                                            <LinkBtn onClick={() => { }}>Forget Password?</LinkBtn>
+                                            <LinkBtn
+                                                onClick={() => {
+                                                    navigate("/recover")
+                                                }}
+                                            >Forget Password?</LinkBtn>
                                         </div>
                                         <SubmitBtn loading={loading} label="Sign in" loadingLabel="Sigining in..." />
                                     </form>
