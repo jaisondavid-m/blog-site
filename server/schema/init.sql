@@ -88,3 +88,119 @@ ADD UNIQUE KEY uq_password_reset_user (user_id);
 
 CREATE INDEX idx_prt_token ON password_reset_tokens(token);
 CREATE INDEX idx_prt_user_id ON password_reset_tokens(user_id);
+
+CREATE TABLE blog_posts (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    uuid CHAR(36) NOT NULL UNIQUE,
+    author_id BIGINT UNSIGNED NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    excerpt TEXT,
+    content LONGTEXT NOT NULL,
+    tag VARCHAR(100),
+    cover_image VARCHAR(255),
+    status ENUM(
+        'draft',
+        'published',
+        'archived'
+    ) DEFAULT 'draft',
+    views_count INT UNSIGNED DEFAULT 0,
+    likes_count INT UNSIGNED DEFAULT 0,
+    comments_count INT UNSIGNED DEFAULT 0,
+    published_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL,
+
+    FOREIGN KEY (author_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX idx_blog_author
+ON blog_posts(author_id);
+
+CREATE INDEX idx_blog_status
+ON blog_posts(status);
+
+CREATE INDEX idx_blog_published
+ON blog_posts(published_at);
+
+CREATE TABLE blog_comments (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    uuid CHAR(36) NOT NULL UNIQUE,
+    post_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
+    parent_comment_id BIGINT UNSIGNED NULL,
+    comment_text TEXT NOT NULL,
+    likes_count INT UNSIGNED DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL,
+
+    FOREIGN KEY (post_id)
+        REFERENCES blog_posts(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (parent_comment_id)
+        REFERENCES blog_comments(id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX idx_comment_post
+ON blog_comments(post_id);
+
+CREATE INDEX idx_comment_user
+ON blog_comments(user_id);
+
+CREATE INDEX idx_comment_parent
+ON blog_comments(parrent_comment_id);
+
+CREATE TABLE blog_likes (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    post_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_post_like (
+        post_id,
+        user_id
+    ),
+
+    FOREIGN KEY (post_id)
+        REFERENCES blog_posts(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX idx_like_post
+ON blog_likes(post_id);
+
+CREATE INDEX idx_like_user
+ON blog_likes(user_id);
+
+CREATE TABLE blog_bookmarks (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    post_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_bookmark (
+        post_id,
+        user_id
+    )
+
+    FOREIGN KEY (post_id)
+        REFERENCES blog_posts(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
