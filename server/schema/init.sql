@@ -159,7 +159,7 @@ CREATE INDEX idx_comment_user
 ON blog_comments(user_id);
 
 CREATE INDEX idx_comment_parent
-ON blog_comments(parrent_comment_id);
+ON blog_comments(parent_comment_id);
 
 CREATE TABLE blog_likes (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
