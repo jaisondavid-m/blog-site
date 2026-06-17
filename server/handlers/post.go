@@ -1,20 +1,20 @@
 package handlers
 
 import (
-
-	"time"
+	"fmt"
 	"strconv"
+	"time"
+
 	// "strings"
-	"net/http"
 	"database/sql"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
 	"server/config"
-	"server/models"
 	"server/helper"
-
+	"server/models"
 )
 
 func CreatePost(c *gin.Context) {
@@ -83,7 +83,7 @@ func GetPosts(c *gin.Context) {
 	query := `
 		SELECT
 			p.id, p.uuid, p.author_id, u.first_name, u.last_name, u.avatar_url,
-			p.title, p.excerpt, p.tag, p.cover_image, p.view_count,
+			p.title, p.excerpt, p.tag, p.cover_image, p.views_count,
 			p.likes_count, p.comments_count, p.published_at, p.created_at,
 	`
 
@@ -104,18 +104,24 @@ func GetPosts(c *gin.Context) {
 	`
 
 	if tag != "" {
-		query += "AND p.tag = ?"
+		query += " AND p.tag = ?"
 		args = append(args, tag)
 	}
 
+	// query += "ORDER BY p.published_at DESC LIMIT ? OFFSET ?"
 	query += "ORDER BY p.published_at DESC LIMIT ? OFFSET ?"
 	args = append(args, limit, offset)
 
+	fmt.Println(query)
+	fmt.Println(args)
 	rows, err := config.DB.Query(query, args...)
 
 	if err != nil {
+		println(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":"Failed to fetch posts",
+			// "error":"Failed to fetch posts",
+			"error":err.Error(),
+			"query":query,
 		})
 		return
 	}

@@ -204,3 +204,6 @@ CREATE TABLE blog_bookmarks (
         REFERENCES users(id)
         ON DELETE CASCADE
 );
+
+CREATE INDEX idx_bookmark_post ON blog_bookmarks(post_id);
+CREATE INDEX idx_bookmark_user ON blog_bookmarks(post_id);
