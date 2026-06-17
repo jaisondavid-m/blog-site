@@ -61,6 +61,7 @@ func SetupRoutes(r *gin.Engine) {
 	posts := r.Group("/api/posts")
 	{
 		posts.POST("", middleware.RequireAuth(), handlers.CreatePost)
+		posts.GET("",middleware.RequireAuth(), handlers.GetPosts)
 	}
 
 }
