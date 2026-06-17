@@ -58,4 +58,9 @@ func SetupRoutes(r *gin.Engine) {
 		fp.POST("/reset",handlers.ResetPassword)
 	}
 
+	posts := r.Group("/api/posts")
+	{
+		posts.POST("", middleware.RequireAuth(), handlers.CreatePost)
+	}
+
 }

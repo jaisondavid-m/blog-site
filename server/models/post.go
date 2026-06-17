@@ -24,3 +24,12 @@ type Post struct {
 	CreatedAt 		time.Time 	`json:"created_at"`
 
 }
+
+type CreatePostInput struct {
+	Title 			string			`json:"title" binding:"required"`
+	Excerpt 		string 			`json:"excerpt"`
+	Content 		string 			`json:"content" binding:"required"`
+	Tag 			string 			`json:"tag"`
+	CoverImage 		string			`json:"cover_image"`
+	Status 			string			`json:"status"`
+}
