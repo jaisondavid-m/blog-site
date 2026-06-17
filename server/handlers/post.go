@@ -43,10 +43,12 @@ func CreatePost(c *gin.Context) {
 
 	res, err := config.DB.Exec(`
 		INSERT INTO blog_posts (uuid, author_id, title, excerpt, content, tag, cover_image, status, published_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`,postUUID, userID, input.Title, input.Excerpt, input.Content, input.Tag, input.CoverImage, status, publishedAt,
 	)
 
 	if err != nil {
+		println(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":"Failed to create post",
 		})
@@ -56,6 +58,7 @@ func CreatePost(c *gin.Context) {
 	id, _ := res.LastInsertId()
 
 	c.JSON(http.StatusCreated, gin.H{
+		"message":"Post Created Successfully",
 		"id":id,
 		"uuid":postUUID,
 	})
