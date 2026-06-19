@@ -199,9 +199,9 @@ func GetPost(c *gin.Context) {
 	}
 
 	query += `
-		FROM blogs_posts p
+		FROM blog_posts p
 		JOIN users u ON u.id = p.author_id
-		WHERE p.uuid = ? p.deleted_at IS NULL
+		WHERE p.uuid = ? AND p.deleted_at IS NULL
 	`
 
 	args = append(args, uuidParam)
