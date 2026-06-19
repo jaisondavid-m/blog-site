@@ -259,3 +259,45 @@ func GetPost(c *gin.Context) {
 	})
 
 }
+
+func  DeletePost(c *gin.Context) {
+
+	userID, _ := helper.GetUserID(c)
+	uuidParam := c.Param("uuid")
+
+	var authorID uint64
+	err := config.DB.QueryRow("SELECT author_id FROM blog_posts WHERE uuid = ? AND deleted_at IS NULL", uuidParam).Scan(&authorID)
+
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Post not found",
+		})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch post",
+		})
+		return
+	}
+
+	if authorID != userID {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "You can only delete your own post",
+		})
+		return
+	}
+
+	if _, err := config.DB.Exec("UPDATE blog_posts SET deleted_at = NOW() WHERE uuid = ?", uuidParam); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete post",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Post deleted",
+	})
+
+}
