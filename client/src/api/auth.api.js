@@ -69,7 +69,7 @@ export const updateProfile = async (data) => {
     try {
         const res = await api.put("/api/auth/profile",data)
         return { success: true, data: res.data }
-    } catch (error) {
+    } catch (error) {y
         return { success: false, error: error.response?.data?.error || "Failed to update profile" }
     }
 }

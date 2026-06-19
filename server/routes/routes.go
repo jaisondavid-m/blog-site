@@ -62,6 +62,7 @@ func SetupRoutes(r *gin.Engine) {
 	{
 		posts.POST("", middleware.RequireAuth(), handlers.CreatePost)
 		posts.GET("",middleware.RequireAuth(), handlers.GetPosts)
+		posts.GET("/:uuid", middleware.OptionalAuth(), handlers.GetPost)
 	}
 
 }

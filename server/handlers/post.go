@@ -173,3 +173,89 @@ func GetPosts(c *gin.Context) {
 	})
 
 }
+
+func GetPost(c *gin.Context) {
+
+	uuidParam := c.Param("uuid")
+	userID, authed := helper.GetUserID(c)
+
+	args := []any{}
+
+	query := `
+		SELECT
+			p.id, p.uuid, p.author_id, u.first_name, u.last_name, u.avatar_url,
+			p.title, p.excerpt, p.content, p.tag, p.cover_image, p.status,
+			p.views_count, p.likes_count, p.comments_count, p.published_at, p.created_at,
+	`
+
+	if authed {
+		query += `
+			EXISTS(SELECT 1 FROM blog_likes b1 WHERE b1.post_id = p.id AND b1.user_id = ?) AS is_liked,
+			EXISTS(SELECT 1 FROM blog_bookmarks b2 WHERE b2.post_id = p.id AND b2.user_id = ?) AS is_bookmarked
+		`
+		args = append(args, userID, userID)
+	} else {
+		query += `0 AS is_liked, 0 AS is_bookmarked`
+	}
+
+	query += `
+		FROM blogs_posts p
+		JOIN users u ON u.id = p.author_id
+		WHERE p.uuid = ? p.deleted_at IS NULL
+	`
+
+	args = append(args, uuidParam)
+
+	var p models.Post
+	var lastName, avatar, excerpt, tag, cover sql.NullString
+	var publishedAt sql.NullTime
+
+	err := config.DB.QueryRow(query, args...).Scan(
+		&p.ID, &p.UUID, &p.AuthorID, &p.AuthorName, &lastName, &avatar,
+		&p.Title, &excerpt, &p.Content, &tag, &cover, &p.Status,
+		&p.ViewsCount, &p.LikesCount, &p.CommentCount, &publishedAt, &p.CreatedAt,
+		&p.IsLiked, &p.IsBookmarked,
+	)
+
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Post not found",
+		})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch post",
+		})
+		return
+	}
+	
+	if p.Status != "published" && p.AuthorID != userID {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Post not found",
+		})
+		return
+	}
+
+	if lastName.Valid {
+		p.AuthorName += " " + lastName.String
+	}
+
+	p.AuthorAvatar = avatar.String
+	p.Excerpt = excerpt.String
+	p.Tag = tag.String
+	p.CoverImage = cover.String
+
+	if publishedAt.Valid {
+		p.PublishedAt = &publishedAt.Time
+	}
+
+	go config.DB.Exec("UPDATE blog_posts SET views_count = views_count + 1 WHERE id = ?",p.ID)
+	p.ViewsCount ++
+
+	c.JSON(http.StatusOK, gin.H{
+		"post": p,
+	})
+
+}
