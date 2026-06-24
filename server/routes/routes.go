@@ -65,6 +65,8 @@ func SetupRoutes(r *gin.Engine) {
 		posts.GET("/:uuid", middleware.OptionalAuth(), handlers.GetPost)
 		posts.PUT("/:uuid", middleware.RequireAuth(), handlers.UpdatePost)
 		posts.DELETE("/:uuid", middleware.RequireAuth(), handlers.DeletePost)
+
+		posts.POST("/:uuid/like", middleware.RequireAuth(), handlers.ToggleLike)
 	}
 
 }
