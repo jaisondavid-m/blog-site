@@ -33,3 +33,12 @@ type CreatePostInput struct {
 	CoverImage 		string			`json:"cover_image"`
 	Status 			string			`json:"status"`
 }
+
+type UpdatePostInput struct {
+	Title 			*string 		`json:"title"`
+	Excerpt 		*string 		`json:"excerpt"`
+	Content 		*string 		`json:"content"`
+	Tag 			*string 		`json:"tag"`
+	CoverImage 		*string 		`json:"cover_image"`
+	Status 			*string 		`json:"status"`
+}

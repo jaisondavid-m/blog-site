@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	// "strings"
@@ -298,6 +299,105 @@ func  DeletePost(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Post deleted",
+	})
+
+}
+
+func UpdatePost(c *gin.Context) {
+
+	userID, _ := helper.GetUserID(c)
+	uuidParam := c.Param("uuid")
+
+	var input models.UpdatePostInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request body",
+		})
+		return
+	}
+
+	var authorID uint64
+	var currentStatus string
+	err := config.DB.QueryRow("SELECT author_id, status FROM blog_posts WHERE uuid = ? AND deleted_at IS NULL", uuidParam).
+		Scan(&authorID, &currentStatus)
+
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Post now found",
+		})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch post",
+		})
+		return
+	}
+
+	if authorID != userID {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "You can only edit your own posts",
+		})
+		return
+	}
+
+	sets := []string{}
+	args := []any{}
+
+	if input.Title != nil {
+		sets = append(sets, "title = ?")
+		args = append(args, *input.Title)
+	}
+
+	if input.Excerpt != nil {
+		sets = append(sets, "excerpt = ?")
+		args = append(args, *input.Excerpt)
+	}
+
+	if input.Content != nil {
+		sets = append(sets, "content = ?")
+		args = append(args, *input.Content)
+	}
+
+	if input.Tag != nil {
+		sets = append(sets, "tag = ?")
+		args = append(args, *input.Tag)
+	}
+
+	if input.CoverImage != nil {
+		sets = append(sets, "cover_image = ?")
+		args = append(args, *input.CoverImage)
+	}
+
+	if input.Status != nil {
+		sets = append(sets, "status = ?")
+		args = append(args, *input.Status)
+		if *input.Status == "published" && currentStatus != "published" {
+			sets = append(sets, "published_at = ?")
+			args = append(args, time.Now())
+		}
+	}
+
+	if len(sets) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "No fields to update",
+		})
+		return
+	}
+
+	query := "UPDATE blog_posts SET " + strings.Join(sets, ", ") + " WHERE uuid = ?"
+	args = append(args, uuidParam)
+
+	if _, err := config.DB.Exec(query, args...); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to update post",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Post Updated",
 	})
 
 }
