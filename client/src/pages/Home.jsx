@@ -1,8 +1,13 @@
 import React , { useState , useCallback } from "react"
-import BlogPost from "../components/BlogPost.jsx"
+import BlogPost from "../components/posts/BlogPost.jsx"
 import ToastStack from "../components/ToastStack.jsx"
 import { DUMMY_POST } from "../data/DummyData.js"
-import { FiZap } from "react-icons/fi"
+import {
+    FiZap , FiLoader, FiAlertCircle,
+    FiRefreshCw, FiInbox, FiChevronDown,
+} from "react-icons/fi"
+
+import { getPosts } from "../api/post.api.js"
 
 function Home() {
 

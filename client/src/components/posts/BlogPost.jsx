@@ -1,6 +1,6 @@
 import React , { useState } from "react"
-import { AvatarGradient } from "./AvatarGradient.jsx"
-import { Avatar } from "./Avatar.jsx"
+import { AvatarGradient } from "../AvatarGradient.jsx"
+import { Avatar } from "../Avatar.jsx"
 import CommentInput from "./CommentInput.jsx"
 import { FiBookmark, FiHeart, FiMessageCircle, FiMoreHorizontal, FiShare } from "react-icons/fi"
 
