@@ -8,6 +8,7 @@ import Test from "../pages/Test.jsx"
 import Home from "../pages/Home.jsx"
 import Profile from "../pages/Profile.jsx"
 import ForgetPassword from "../pages/ForgetPassword.jsx"
+import PostPage from "../pages/PostPage.jsx"
 
 import PublicRoute from "../components/PublicRoute.jsx"
 import ProtectedRoute from "../components/ProtectedRoute.jsx"
@@ -27,6 +28,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<MainLayout/>}>
               <Route path='/home' element={<Home />} />
+              <Route path='/post/:uuid' element={<PostPage/>} />
               <Route path='/profile' element={<Profile />} />
               <Route path='/test' element={<Test />} />
             </Route>

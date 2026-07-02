@@ -24,7 +24,7 @@ function BlogPost({ post, onShare }) {
     }
 
     const handleShare = () => {
-        navigator.clipboard?.writeText(`${window.location.origin}/post/${post.id}`).catch(() => {})
+        navigator.clipboard?.writeText(`${window.location.origin}/post/${post.uuid}`).catch(() => {})
         onShare()
     }
 
