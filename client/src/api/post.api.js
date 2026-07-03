@@ -51,3 +51,18 @@ export async function toggleLike(uuid) {
         }
     }
 }
+
+export async function toggleBookmark(uuid) {
+    try {
+        const res = await api.post(`/api/posts/${uuid}/bookmark`)
+        return {
+            success: true,
+            data: res.data,
+        }
+    } catch (err) {
+        return {
+            success: false,
+            error: err.response?.data?.errror || "Failed to toggle bookmark"
+        }
+    }
+}

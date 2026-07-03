@@ -46,7 +46,7 @@ func ToggleBookmark(c *gin.Context) {
 			})
 			return
 		} else {
-			if _, err := config.DB.Exec("INSERT INTO blog_bookmarks (post_id, userid) VALUES (?, ?)",postID, userID); err != nil {
+			if _, err := config.DB.Exec("INSERT INTO blog_bookmarks (post_id, user_id) VALUES (?, ?)",postID, userID); err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"error": "Failed to add add bookmark",
 				})
