@@ -2,14 +2,15 @@ import React , { useState } from "react"
 import { AvatarGradient } from "../AvatarGradient.jsx"
 import { Avatar } from "../Avatar.jsx"
 import CommentInput from "./CommentInput.jsx"
+import { toggleLike as toggleLikeApi } from "../../api/post.api.js"
 import { FiBookmark, FiHeart, FiMessageCircle, FiMoreHorizontal, FiShare } from "react-icons/fi"
 import { useNavigate } from "react-router-dom"
 
 function BlogPost({ post, onShare }) {
 
     const navigate = useNavigate()
-    const [liked, setLiked] = useState(false)
-    const [likeCount, setLikeCount] = useState(post.likes)
+    const [liked, setLiked] = useState(post.is_liked ?? false)
+    const [likeCount, setLikeCount] = useState(post.likes_count ?? 0)
     const [saved, setSaved] = useState(false)
     const [showComments, setShowComments] = useState(false)
     const [comments, setComments] = useState(post.comments)
@@ -25,9 +26,24 @@ function BlogPost({ post, onShare }) {
 
     const gradient = AvatarGradient(post.author.firstName)
 
-    const toggleLike = () => {
+    const toggleLike = async () => {
+
+        const prevLiked = liked
+        const prevCount = likeCount
+
         setLiked(p => !p)
-        setLikeCount(p => liked ? p-1 : p+1)
+        setLikeCount(p => prevLiked ? p - 1 : p + 1)
+
+        const res = await toggleLikeApi(post.uuid)
+
+        if (!res.success) {
+            setLiked(prevLiked)
+            setLikeCount(prevCount)
+            return
+        }
+
+        setLiked(res.data.liked)
+        setLikeCount(res.data.likes_count)
     }
 
     const toggleSave = () => {

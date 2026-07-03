@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Avatar } from "../components/Avatar.jsx"
 import { AvatarGradient } from "../components/AvatarGradient.jsx"
-import { getPost } from "../api/post.api.js"
+import { getPost, toggleLike as toggleLikeApi } from "../api/post.api.js"
 
 import PostPageSkeleton from "../components/posts/PostPageSkeleton.jsx"
 import StatPill from "../components/posts/StatPill.jsx"
@@ -76,9 +76,25 @@ function PostPage() {
 
     }, [post])
 
-    const toggleLike = () => {
+    const toggleLike = async () => {
+
+        const prevLiked = liked
+        const prevCount = likeCount
+
         setLiked(p => !p)
-        setLikeCount(p => liked ? p - 1 : p + 1)
+        setLikeCount(p => prevLiked ? p - 1 : p + 1)
+
+        const res = await toggleLike(uuid)
+
+        if (!res.success) {
+            setLiked(prevLiked)
+            setLikeCount(prevCount)
+            return
+        }
+
+        setLiked(res.data.liked)
+        setLikeCount(res.data.likes_count)
+
     }
 
     const handleShare = () => {

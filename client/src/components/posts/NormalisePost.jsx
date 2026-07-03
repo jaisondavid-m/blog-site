@@ -26,7 +26,7 @@ function NormalisePost(raw) {
         coverImage: raw.cover_image,
         readTime: estimateReadTime(raw.excerpt),
         publishedAt: formatDate(raw.published_at),
-        likes: raw.likes_count ?? 0,
+        likes_count: raw.likes_count ?? 0,
         comments: [],
         author: {
             firstName,
@@ -34,7 +34,7 @@ function NormalisePost(raw) {
             username: raw.author_name?.toLowerCase().replace(/\s+/g, "") ?? "",
             avatarURL: raw.author_avatar || null,
         },
-        isLiked: raw.is_liked,
+        isLiked: Boolean(raw.is_liked),
         isBookmarked: raw.is_bookmarked,
         viewsCount: raw.views_count,
     }

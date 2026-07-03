@@ -36,3 +36,18 @@ export async function getPost(uuid) {
         }
     }
 }
+
+export async function toggleLike(uuid) {
+    try {
+        const res = await api.post(`/api/posts/${uuid}/like`)
+        return {
+            success: true,
+            data: res.data,
+        }
+    } catch (err) {
+        return {
+            success: false,
+            error: err.response?.data?.error || "Failed to toggle like"
+        }
+    }
+}

@@ -46,7 +46,7 @@ func ToggleLike(c *gin.Context) {
 
 	if exists {
 		tx.Exec("DELETE FROM blog_likes WHERE post_id = ? AND user_id = ?", postID, userID)
-		tx.Exec("UPDATE blog_posts SET likes_count - like_count - 1 WHERE id = ?", postID)
+		tx.Exec("UPDATE blog_posts SET likes_count = like_count - 1 WHERE id = ?", postID)
 	} else {
 		tx.Exec("INSERT INTO blog_likes (post_id, user_id) VALUES (?, ?)", postID, userID)
 		tx.Exec("UPDATE blog_posts SET likes_count = likes_count + 1 WHERE id = ?", postID)
