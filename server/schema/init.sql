@@ -179,6 +179,7 @@ CREATE TABLE blog_likes (
         REFERENCES users(id)
         ON DELETE CASCADE
 );
+ALTER TABLE blog_likes ADD CONSTRAINT unqi_post_user UNIQUE (post_id, user_id);
 
 CREATE INDEX idx_like_post
 ON blog_likes(post_id);

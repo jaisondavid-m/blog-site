@@ -84,7 +84,7 @@ function PostPage() {
         setLiked(p => !p)
         setLikeCount(p => prevLiked ? p - 1 : p + 1)
 
-        const res = await toggleLike(uuid)
+        const res = await toggleLikeApi(uuid)
 
         if (!res.success) {
             setLiked(prevLiked)

@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom"
 function BlogPost({ post, onShare }) {
 
     const navigate = useNavigate()
-    const [liked, setLiked] = useState(post.is_liked ?? false)
+    const [liked, setLiked] = useState(post.isLiked ?? false)
     const [likeCount, setLikeCount] = useState(post.likes_count ?? 0)
     const [saved, setSaved] = useState(false)
     const [showComments, setShowComments] = useState(false)
