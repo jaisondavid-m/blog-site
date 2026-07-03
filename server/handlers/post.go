@@ -110,7 +110,7 @@ func GetPosts(c *gin.Context) {
 	}
 
 	// query += "ORDER BY p.published_at DESC LIMIT ? OFFSET ?"
-	query += "ORDER BY p.published_at DESC LIMIT ? OFFSET ?"
+	query += " ORDER BY p.published_at DESC LIMIT ? OFFSET ?"
 	args = append(args, limit, offset)
 
 	fmt.Println(query)

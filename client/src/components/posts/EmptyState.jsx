@@ -8,7 +8,7 @@ function EmptyState({ tag }) {
                 <FiInbox size={24} className="text-gray-300" />
             </div>
             <p className="text-[15px] font-bold text-gray-400" >
-                {tag ? `No posts tagged "${tags}" yet` : "No posts yet"}
+                {tag ? `No posts tagged "${tag}" yet` : "No posts yet"}
             </p>
             <p className="text-[13px] text-gray-300 mt-1" >
                 Check back soon - stories are on their way
