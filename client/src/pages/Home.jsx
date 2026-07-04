@@ -1,10 +1,12 @@
 import React, { useState, useCallback, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import BlogPost from "../components/posts/BlogPost.jsx"
 import ToastStack from "../components/ToastStack.jsx"
 import { DUMMY_POST } from "../data/DummyData.js"
 import {
     FiZap, FiLoader, FiAlertCircle,
     FiRefreshCw, FiInbox, FiChevronDown,
+    FiEdit,
 } from "react-icons/fi"
 
 import { getPosts } from "../api/post.api.js"
@@ -17,6 +19,7 @@ import NormalisePost from "../components/posts/NormalisePost.jsx"
 function Home() {
 
     // const posts = DUMMY_POST
+    const navigate = useNavigate()
     const [posts, setPosts] = useState([])
     const [page, setPage] = useState(1)
     const [hasMore, setHasMore] = useState(true)
@@ -79,7 +82,7 @@ function Home() {
         setPosts([])
         setHasMore(true)
         fetchPosts(1, activeTag, false)
-    },[activeTag, fetchPosts])
+    }, [activeTag, fetchPosts])
 
     return (
         <>
@@ -111,17 +114,28 @@ function Home() {
                 <div className="max-w-2xl mx-auto px-5 lg:px-8 py-10" >
 
                     {/* Page header */}
-                    <div className="mb-6" >
-                        <div className="flex items-center gap-2 mb-1" >
-                            <FiZap size={18} className="text-indigo-500" />
-                            <h1 className="font-['Bricolage_Grotesque'] text-2xl font-extrabold text-gray-900 tracking-tight" >
-                                Latest posts
-                            </h1>
+                    <div className="mb-6 flex items-center justify-between" >
+                        <div className="" >
+                            <div className="flex items-center gap-2 mb-1" >
+                                <FiZap size={18} className="text-indigo-500" />
+                                <h1 className="font-['Bricolage_Grotesque'] text-2xl font-extrabold text-gray-900 tracking-tight" >
+                                    Latest posts
+                                </h1>
+                            </div>
+                            <p className="text-sm text-gray-400 font-medium" >
+                                Stories from the community
+                            </p>
                         </div>
-                        <p className="text-sm text-gray-400 font-medium" >
-                            Stories from the community
-                        </p>
+                        <button
+                            onClick={() => navigate("/write")}
+                            className="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-600 shadow-sm
+                        hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition"
+                        >
+                            <FiEdit size={14} />
+                            Write a Post
+                        </button>
                     </div>
+
 
                     <div className="mb-7" >
                         <TagFilter active={activeTag} onChange={handleTagChange} />
@@ -141,7 +155,7 @@ function Home() {
                     ) : (
                         <>
                             <div className="flex flex-col gap-5" >
-                                {posts.map((post,i) => (
+                                {posts.map((post, i) => (
                                     <div
                                         key={post.uuid}
                                         className="post-enter"
@@ -178,7 +192,7 @@ function Home() {
 
                             {!hasMore && posts.length > 0 && (
                                 <p className="text-center text-[12.5px] text-gray-300 font-medium mb-8" >
-                                    You've reached the end · {posts.length} post{posts.length !==1 ? "s" : ""}
+                                    You've reached the end · {posts.length} post{posts.length !== 1 ? "s" : ""}
                                 </p>
                             )}
                         </>
