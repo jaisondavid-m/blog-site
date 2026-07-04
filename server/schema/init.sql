@@ -208,3 +208,15 @@ CREATE TABLE blog_bookmarks (
 
 CREATE INDEX idx_bookmark_post ON blog_bookmarks(post_id);
 CREATE INDEX idx_bookmark_user ON blog_bookmarks(post_id);
+
+CREATE TABLE blog_posts_views (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    post_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NULL,
+    ip_address VARCHAR(45) NULL,
+    viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_view_user (post_id, user_id),
+    UNIQUE KEY uq_view_ip (post_id, ip_address),
+    FOREIGN KEY (post_id) REFERENCES blog_posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+)

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	
 	"fmt"
 	"strconv"
 	"strings"
@@ -252,8 +253,37 @@ func GetPost(c *gin.Context) {
 		p.PublishedAt = &publishedAt.Time
 	}
 
-	go config.DB.Exec("UPDATE blog_posts SET views_count = views_count + 1 WHERE id = ?",p.ID)
-	p.ViewsCount ++
+	// go config.DB.Exec("UPDATE blog_posts SET views_count = views_count + 1 WHERE id = ?",p.ID)
+	// p.ViewsCount ++
+
+	postID := p.ID
+	ip := c.ClientIP()
+
+	go func() {
+		if authed {
+			res, err := config.DB.Exec(
+				"INSERT IGNORE INTO blog_post_views (post_id, user_id) VALUES (?, ?)",
+				postID, userID,
+			)
+			if err != nil {
+				return
+			}
+			if rows, _ := res.RowsAffected(); rows > 0 {
+				config.DB.Exec("UPDATE blog_posts SET views_count = views_count + 1 WHERE id =  ?", p.ID)
+			}
+		} else {
+			res, err := config.DB.Exec(
+				"INSERT IGNORE INTO blog_post_views (post_id, ip_address) VALUES (?, ?)",
+				postID, ip,
+			)
+			if err != nil {
+				return 
+			}
+			if rows, _ := res.RowsAffected(); rows > 0 {
+				config.DB.Exec("UPDATE blog_posts SET views_count = views_count + 1 WHERE id = ?", p.ID)
+			}
+		}
+	}()
 
 	c.JSON(http.StatusOK, gin.H{
 		"post": p,
