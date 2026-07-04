@@ -66,3 +66,15 @@ export async function toggleBookmark(uuid) {
         }
     }
 }
+
+export async function createPost(data) {
+    try {
+        const res = await api.post("/api/posts", data)
+        return { success: true, data: res.data }
+    } catch (err) {
+        return {
+            success: false,
+            error: err.response?.data?.error || "Failed to create post"
+        }
+    }
+}
