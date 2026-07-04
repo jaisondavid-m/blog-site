@@ -38,6 +38,7 @@ func ToggleLike(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to toggle like",
 		})
+		return
 	}
 
 	defer tx.Rollback()
@@ -71,7 +72,7 @@ func ToggleLike(c *gin.Context) {
 			})
 			return
 		}
-		if _, err := tx.Exec("UDPATE blog_posts SET likes_count = likes_count - 1 WHERE id = ?", postID); err != nil {
+		if _, err := tx.Exec("UPDATE blog_posts SET likes_count = likes_count - 1 WHERE id = ?", postID); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Failed to toggle like",
 			})
