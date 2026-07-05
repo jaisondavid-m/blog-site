@@ -48,13 +48,13 @@ func ToggleBookmark(c *gin.Context) {
 				"error": "Failed to remove bookmark",
 			})
 			return
-		} else {
-			if _, err := config.DB.Exec("INSERT INTO blog_bookmarks (post_id, user_id) VALUES (?, ?)",postID, userID); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": "Failed to add add bookmark",
-				})
-				return
-			}
+		}
+	} else {
+		if _, err := config.DB.Exec("INSERT INTO blog_bookmarks (post_id, user_id) VALUES (?, ?)", postID, userID); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to add add bookmark",
+			})
+			return
 		}
 	}
 	c.JSON(http.StatusOK, gin.H{
@@ -141,7 +141,7 @@ func GetBookmarks(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"posts": posts,
-		"page": page,
+		"page":  page,
 		"limit": limit,
 	})
 

@@ -35,7 +35,7 @@ function NormalisePost(raw) {
             avatarURL: raw.author_avatar || null,
         },
         isLiked: Boolean(raw.is_liked),
-        isBookmarked: raw.is_bookmarked,
+        isBookmarked: Boolean(raw.is_bookmarked),
         viewsCount: raw.views_count,
     }
 }

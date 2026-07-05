@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Avatar } from "../components/Avatar.jsx"
 import { AvatarGradient } from "../components/AvatarGradient.jsx"
-import { getPost, toggleLike as toggleLikeApi } from "../api/post.api.js"
+import { getPost, toggleBookmarkApi, toggleLike as toggleLikeApi } from "../api/post.api.js"
 
 import PostPageSkeleton from "../components/posts/PostPageSkeleton.jsx"
 import StatPill from "../components/posts/StatPill.jsx"
@@ -10,6 +10,7 @@ import StatPill from "../components/posts/StatPill.jsx"
 import {
     FiArrowLeft, FiHeart, FiMessageCircle, FiShare,
     FiEye, FiLoader, FiAlertCircle, FiCalendar, FiClock,
+    FiBookmark
 } from "react-icons/fi"
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080"
@@ -25,7 +26,7 @@ function PostPage() {
     const [liked, setLiked] = useState(false)
     const [likeCount, setLikeCount] = useState(0)
     const [copied, setCopied] = useState(false)
-
+    const [bookmarked, setBookmarked] = useState(false)
 
 
     useEffect(() => {
@@ -50,6 +51,7 @@ function PostPage() {
             setPost(p)
             setLiked(p.is_liked)
             setLikeCount(p.likes_count)
+            setBookmarked(p.is_bookmarked)
 
         })
 
@@ -94,6 +96,23 @@ function PostPage() {
 
         setLiked(res.data.liked)
         setLikeCount(res.data.likes_count)
+
+    }
+
+    const toggleBookmark = async () => {
+
+        const prev = bookmarked
+
+        setBookmarked(p => !p)
+
+        const res = await toggleBookmarkApi(uuid)
+
+        if (!res.success) {
+            setBookmarked(prev)
+            return 
+        }
+
+        setBookmarked(res.data.bookmarked)
 
     }
 
@@ -307,6 +326,26 @@ function PostPage() {
                             >
                                 <FiShare size={13} />
                                 {copied ? "Copied!" : "Share"}
+                            </button>
+                            <button
+                                onClick={toggleBookmark}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[13px] font-semibold
+                                    transition-all duration-150 active:scale-95 border
+                                        ${
+                                            bookmarked
+                                                ? "bg-amber-50 text-amber-500 border-amber-500"
+                                                : "bg-gray-50 text-gray-500 border-gray-100 hover:bg-amber-50 hover:text-amber-400 hover:border-amber-100"
+                                        }
+                                    `}
+                            >
+                                <FiBookmark
+                                    size={13}
+                                    style={{
+                                        fill: bookmarked
+                                            ? "currentColor"
+                                            : "none"
+                                    }}
+                                />
                             </button>
                         </div>
                     </div>

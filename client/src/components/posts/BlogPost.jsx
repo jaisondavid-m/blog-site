@@ -2,7 +2,7 @@ import React , { useState } from "react"
 import { AvatarGradient } from "../AvatarGradient.jsx"
 import { Avatar } from "../Avatar.jsx"
 import CommentInput from "./CommentInput.jsx"
-import { toggleLike as toggleLikeApi } from "../../api/post.api.js"
+import { toggleLike as toggleLikeApi, toggleBookmarkApi } from "../../api/post.api.js"
 import { FiBookmark, FiHeart, FiMessageCircle, FiMoreHorizontal, FiShare } from "react-icons/fi"
 import { useNavigate } from "react-router-dom"
 
@@ -11,9 +11,10 @@ function BlogPost({ post, onShare }) {
     const navigate = useNavigate()
     const [liked, setLiked] = useState(post.isLiked ?? false)
     const [likeCount, setLikeCount] = useState(post.likes_count ?? 0)
-    const [saved, setSaved] = useState(false)
+    // const [saved, setSaved] = useState(false)
     const [showComments, setShowComments] = useState(false)
     const [comments, setComments] = useState(post.comments)
+    const [saved, setSaved] = useState(post.isBookmarked ?? false)
 
     const goToPost = () => {
         navigate(`/post/${post.uuid}`)
@@ -46,8 +47,20 @@ function BlogPost({ post, onShare }) {
         setLikeCount(res.data.likes_count)
     }
 
-    const toggleSave = () => {
+    const toggleSave = async () => {
+
+        const prev = saved
+
         setSaved(p => !p)
+
+        const res = await toggleBookmarkApi(post.uuid)
+
+        if (!res.success) {
+            setSaved(prev)
+            return
+        }
+
+        setSaved(res.data.bookmarked)
     }
 
     const handleShare = () => {
@@ -165,9 +178,26 @@ function BlogPost({ post, onShare }) {
                             <FiShare size={14} />
                             Share
                         </button>
-                        {/* <button>
-                            <FiBookmark/>
-                        </button> */}
+                        <button
+                            onClick={stop(toggleSave)}
+                            aria-label={saved ? "Remove bookmark" : "Bookmark"}
+                            aria-pressed={saved}
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-semibold
+                                transition-all duration-150 active:scale-95
+                                    ${
+                                        saved
+                                            ? "bg-amber-50 text-amber-500 border border-amber-100"
+                                            : "bg-gray-50 text-gray-500 border border-gray-100 hover:bg-amber-50 hover:text-amber-400 hover:border-amber-100"
+                                    }
+                                `}
+                        >
+                            <FiBookmark
+                                size={14}
+                                style={{
+                                    fill: saved ? "currentColor" : "none"
+                                }}
+                            />
+                        </button>
                     </div>
                 </div>
 

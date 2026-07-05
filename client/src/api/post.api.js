@@ -52,7 +52,7 @@ export async function toggleLike(uuid) {
     }
 }
 
-export async function toggleBookmark(uuid) {
+export async function toggleBookmarkApi(uuid) {
     try {
         const res = await api.post(`/api/posts/${uuid}/bookmark`)
         return {
@@ -62,7 +62,7 @@ export async function toggleBookmark(uuid) {
     } catch (err) {
         return {
             success: false,
-            error: err.response?.data?.errror || "Failed to toggle bookmark"
+            error: err.response?.data?.error || "Failed to toggle bookmark"
         }
     }
 }
@@ -75,6 +75,23 @@ export async function createPost(data) {
         return {
             success: false,
             error: err.response?.data?.error || "Failed to create post"
+        }
+    }
+}
+
+export async function getBookmarks({ page = 1, limit = 10 } = {}) {
+    try {
+        const res = await api.get("/api/posts/bookmarks", {
+            params: { page, limit },
+        })
+        return {
+            success: true,
+            data: res.data,
+        }
+    } catch (err) {
+        return {
+            success: false,
+            error: err.response?.data?.error || "Failed to fetch bookmarks",
         }
     }
 }
