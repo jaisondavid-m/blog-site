@@ -262,7 +262,7 @@ func GetPost(c *gin.Context) {
 	go func() {
 		if authed {
 			res, err := config.DB.Exec(
-				"INSERT IGNORE INTO blog_post_views (post_id, user_id) VALUES (?, ?)",
+				"INSERT IGNORE INTO blog_posts_views (post_id, user_id) VALUES (?, ?)",
 				postID, userID,
 			)
 			if err != nil {
@@ -273,7 +273,7 @@ func GetPost(c *gin.Context) {
 			}
 		} else {
 			res, err := config.DB.Exec(
-				"INSERT IGNORE INTO blog_post_views (post_id, ip_address) VALUES (?, ?)",
+				"INSERT IGNORE INTO blog_posts_views (post_id, ip_address) VALUES (?, ?)",
 				postID, ip,
 			)
 			if err != nil {
