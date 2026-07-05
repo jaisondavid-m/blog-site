@@ -42,3 +42,12 @@ type UpdatePostInput struct {
 	CoverImage 		*string 		`json:"cover_image"`
 	Status 			*string 		`json:"status"`
 }
+
+type PostsOverview struct {
+	TotalPosts 		uint 			`json:"total_posts"`
+	PublishedCount 	uint 			`json:"published_count"`
+	DraftCount 		uint 			`json:"draft_count"`
+	TotalViews 		uint 			`json:"total_views"`
+	TotalLikes		uint 			`json:"total_likes"`
+	TotalComments 	uint 			`json:"total_comments"`
+}
