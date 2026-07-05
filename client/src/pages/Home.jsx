@@ -7,6 +7,7 @@ import {
     FiZap, FiLoader, FiAlertCircle,
     FiRefreshCw, FiInbox, FiChevronDown,
     FiEdit,
+    FiBookmark,
 } from "react-icons/fi"
 
 import { getPosts } from "../api/post.api.js"
@@ -133,6 +134,17 @@ function Home() {
                         >
                             <FiEdit size={14} />
                             Write a Post
+                        </button>
+                        <button
+                            onClick={() => navigate("/bookmarks")}
+                            className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-gray-200
+                            hover:border-amber-300 hover:text-amber-600 hover:bg-amber-50 text-gray-600
+                            rounded-xl text-sm font-semibold transition"
+                        >
+                            <FiBookmark
+                                size={14}
+                            />
+                            Bookmarks
                         </button>
                     </div>
 
