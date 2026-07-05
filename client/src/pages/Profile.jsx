@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom"
 import {
     FiUser, FiMail, FiAtSign, FiCalendar, FiEdit2,
     FiShield, FiLoader, FiAlertCircle, FiFileText,
-    FiHeart, FiBookmark, FiTrendingUp, FiChevronRight,
+    FiHeart, FiBookmark, FiTrendingUp, FiChevronRight,FiEye,
     FiZap, FiCheckCircle, FiCamera, FiX, FiSave, FiAlertTriangle,
 } from "react-icons/fi"
 import { getMe, updateProfile, uploadAvatar } from "../api/auth.api.js"
 import { useAuth } from "../context/AuthContext.jsx"
 import api from "../api/axios.js"
+import { getMyPostsOverview } from "../api/post.api.js"
 
 const initials = (first, last) =>
     `${first?.[0] ?? ""}${last?.[0] ?? ""}`.toUpperCase() || "?"
@@ -283,6 +284,7 @@ function Profile() {
     const [otpExpiry, setOtpExpiry] = useState(null)
     const [timeLeft, setTimeLeft] = useState(120)
     const [editOpen, setEditOpen] = useState(false)
+    const [overview, setOverview] = useState(null)
 
     const handleSendOTP = async () => {
 
@@ -364,6 +366,16 @@ function Profile() {
         }, 1000)
         return () => clearInterval(interval)
     }, [otpModal, otpExpiry])
+
+    useEffect(() => {
+        let cancelled = false
+        ;(async () => {
+            const res = await getMyPostsOverview()
+            if (!cancelled && res.success) {
+                setOverview(res.data.overview)
+            }
+        })()
+    },[])
 
     const gradient = avatarGradient(user?.FirstName)
 
@@ -514,9 +526,9 @@ function Profile() {
                         </div>
                         <div className="flex flex-col gap-5" >
                             <div className="fade-up fade-up-1 grid grid-cols-2 gap-4" >
-                                <StatCard icon={FiFileText} label="Post Written" value="0" accent="bg-indigo-500" />
-                                <StatCard icon={FiHeart} label="Likes Received" value="0" accent="bg-rose-500" />
-                                <StatCard icon={FiBookmark} label="Profile Views" value="0" accent="bg-emerald-500" />
+                                <StatCard icon={FiFileText} label="Post Written" value={overview?.total_posts ?? "..."} accent="bg-indigo-500" />
+                                <StatCard icon={FiHeart} label="Likes Received" value={overview?.total_likes ?? "..."} accent="bg-rose-500" />
+                                <StatCard icon={FiEye} label="Total Views" value={overview?.total_views ?? "..."} accent="bg-emerald-500" />
                             </div>
                             <div className="fade-up fade-up-2 bg-white rounded-3xl border border-gray-100 shadow-sm p-7" >
                                 <h3 className="font-['Bricolage_Grotesque'] text-[17px] font-extrabold text-gray-900 mb-5 flex items-center gap-2" >

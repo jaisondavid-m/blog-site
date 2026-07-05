@@ -95,3 +95,43 @@ export async function getBookmarks({ page = 1, limit = 10 } = {}) {
         }
     }
 }
+
+export async function getMyPosts({ page = 1, limit = 10, status = "" } = {}) {
+    try {
+
+        const params = { page, limit }
+
+        if (status) {
+            params.status = status
+        }
+
+        const res = await api.get("/api/posts/mine",{ params })
+
+        return {
+            success: true,
+            data: res.data,
+        }
+    } catch (err) {
+        return {
+            success: false,
+            error: err.response?.data?.error || "Failed to fetch your posts",
+        }
+    }
+}
+
+export async function getMyPostsOverview() {
+
+    try {
+        const res = await api.get("/api/posts/mine/overview")
+        return {
+            success: true,
+            data: res.data,
+        }
+    } catch (err) {
+        return {
+            success: false,
+            error: err.response?.data?.error || "Failed to fetch overview data"
+        }
+    }
+
+}
