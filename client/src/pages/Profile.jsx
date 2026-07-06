@@ -445,6 +445,14 @@ function Profile() {
                             <FiEdit2 size={14} />
                             Edit Profile
                         </button>
+                        <button
+                            onClick={() => navigate("/my-posts")}
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white duration-150
+                            text-sm font-semibold text-gray-700 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50 transition-all"
+                        >
+                            <FiFileText size={14} />
+                            My Posts
+                        </button>
                     </div>
                 </div>
                 <div className="max-w-4xl mx-auto px-5 lg:px-8 py-8" >

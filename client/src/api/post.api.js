@@ -1,3 +1,4 @@
+import { data } from "react-router-dom"
 import api from "./axios.js"
 
 export async function getPosts({ page = 1, limit = 10, tag = "" }) {
@@ -131,6 +132,43 @@ export async function getMyPostsOverview() {
         return {
             success: false,
             error: err.response?.data?.error || "Failed to fetch overview data"
+        }
+    }
+
+}
+
+export async function deletePost(uuid) {
+
+    try {
+        const res = await api.delete(`/api/posts/${uuid}`)
+        return {
+            success: true,
+            data: res.data,
+        }
+    } catch (err) {
+        return {
+            success: false,
+            error: err.response?.data?.error || "Failed to delete post",
+        }
+    }
+
+}
+
+
+export async function updatePostStatus(uuid, status) {
+
+    try {
+        const res = await api.put(`/api/posts/${uuid}`, {
+            status,
+        })
+        return {
+            success: true,
+            data: res.data,
+        }
+    } catch (err) {
+        return {
+            success: false,
+            error: err.response?.data?.error || "Failed to update post"
         }
     }
 
