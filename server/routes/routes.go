@@ -77,9 +77,9 @@ func SetupRoutes(r *gin.Engine) {
 		
 	}
 
-	// comments := r.Group("/api/comments")
-	// {
-
-	// }
+	comments := r.Group("/api/comments")
+	{
+		comments.PUT("/:uuid", middleware.RequireAuth(), handlers.UpdateComment)
+	}
 
 }

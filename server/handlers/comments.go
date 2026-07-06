@@ -219,3 +219,50 @@ func CreateComment(c *gin.Context) {
 	})
 
 }
+
+func UpdateComment(c *gin.Context) {
+
+	userID, _ := helper.GetUserID(c)
+	uuidParam := c.Param("uuid")
+
+	var in models.UpdateCommentInput
+
+	if err := c.ShouldBindJSON(&in);err != nil || strings.TrimSpace(in.CommentText) == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Comment text is required",
+		})
+		return 
+	}
+
+	var ownerID uint64
+
+	err := config.DB.QueryRow("SELECT user_id FROM blog_comments WHERE uuid = ? AND deleted_at IS NULL", uuidParam).Scan(&ownerID)
+
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Comment not found",
+		})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch comment",
+		})
+		return
+	}
+
+	if ownerID != userID {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "You can only edit your own comments",
+		})
+		return
+	}
+
+	if _, err := config.DB.Exec("UPDATE blog_comments SET comment_text = ? WHERE uuid = ?", in.CommentText, uuidParam); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Comment updated",
+		})
+	}
+
+}

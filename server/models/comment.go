@@ -22,3 +22,7 @@ type CreateCommentInput struct {
 	CommentText 		string 		`json:"comment_text" binding:"required"`
 	ParentCommentID 	*uint64 	`json:"parent_comment_id"`
 }
+
+type UpdateCommentInput struct {
+	CommentText 		string		`json:"comment_text" binding:"required"`
+}
