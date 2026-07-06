@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react"
 import { AvatarGradient } from "../AvatarGradient.jsx"
 import { Avatar } from "../Avatar.jsx"
 import CommentInput from "./CommentInput.jsx"
+import CommentItem from "./CommentItem.jsx"
 import { toggleLike as toggleLikeApi, toggleBookmarkApi, getComments, createComment } from "../../api/post.api.js"
 import { FiBookmark, FiHeart, FiMessageCircle, FiMoreHorizontal, FiShare } from "react-icons/fi"
 import { useNavigate } from "react-router-dom"
@@ -90,16 +91,32 @@ function BlogPost({ post, onShare }) {
         setCommentsCount(c => c + 1)
     }
 
+    const loadComments = async () => {
+        const res = await getComments(post.uuid)
+        if (res.success) setComments(res.data.comments ?? [])
+    }
+
+    const handleReply = async (text, parentCommentId) => {
+
+        const res = await createComment(post.uuid, text, parentCommentId)
+        if (!res.success) return 
+        setCommentsCount(c => c + 1)
+        await loadComments()
+
+    }
+
     useEffect(() => {
 
         if (!showComments || comments !== null) return
 
         setCommentsLoading(true)
 
-        getComments(post.uuid).then(res => {
-            setCommentsLoading(false)
-            if (res.success) setComments(res.data.comments ?? [])
-        })
+        // getComments(post.uuid).then(res => {
+        //     setCommentsLoading(false)
+        //     if (res.success) setComments(res.data.comments ?? [])
+        // })
+
+        loadComments().finally(() => setCommentsLoading(false))
 
     }, [showComments])
 
@@ -235,33 +252,38 @@ function BlogPost({ post, onShare }) {
                         ) : (
                             <div className="flex flex-col gap-3 mb-1" >
                                 {comments.map(c => (
-                                    <div key={c.id} className="flex gap-3">
-                                        <Avatar
-                                            firstName={c.author_name?.split(" ")[0]}
-                                            lastName={c.author_name?.split(" ").slice(1).join(" ")}
-                                            avatarURL={c.author_avatar}
-                                            size="w-8 h-8"
-                                            textSize="text-[10px]"
-                                        />
-                                        <div className="flex-1 bg-gray-50 rounded-2xl border border-gray-100 px-4 py-3" >
-                                            <div className="flex items-baseline gap-2 mb-1" >
-                                                <span className="text-[13px] font-bold text-gray-800" >
-                                                    {c.author_name}
-                                                </span>
-                                                <span className="text-[11px] text-gray-400" >
-                                                    {c.created_at}
-                                                </span>
-                                            </div>
-                                            <p className="text-[13.5px] text-gray-600 leading-relaxed m-0" >
-                                                {c.comment_text}
-                                            </p>
-                                        </div>
-                                    </div>
+                                    <CommentItem
+                                        key={c.id}
+                                        comment={c}
+                                        postUuid={post.uuid}
+                                        onReply={handleReply}
+                                    />
+                                    // <div key={c.id} className="flex gap-3">
+                                    //     <Avatar
+                                    //         firstName={c.author_name?.split(" ")[0]}
+                                    //         lastName={c.author_name?.split(" ").slice(1).join(" ")}
+                                    //         avatarURL={c.author_avatar}
+                                    //         size="w-8 h-8"
+                                    //         textSize="text-[10px]"
+                                    //     />
+                                    //     <div className="flex-1 bg-gray-50 rounded-2xl border border-gray-100 px-4 py-3" >
+                                    //         <div className="flex items-baseline gap-2 mb-1" >
+                                    //             <span className="text-[13px] font-bold text-gray-800" >
+                                    //                 {c.author_name}
+                                    //             </span>
+                                    //             <span className="text-[11px] text-gray-400" >
+                                    //                 {c.created_at}
+                                    //             </span>
+                                    //         </div>
+                                    //         <p className="text-[13.5px] text-gray-600 leading-relaxed m-0" >
+                                    //             {c.comment_text}
+                                    //         </p>
+                                    //     </div>
+                                    // </div>
                                 ))}
                             </div>
                         )}
-
-                        <CommentInput onSubmit={addComment} />
+                        <CommentInput onSubmit={(text) => handleReply(text, null)} />
                     </div>
                 )}
             </div>

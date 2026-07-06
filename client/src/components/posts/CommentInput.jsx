@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { FiSend } from "react-icons/fi"
 
-function CommentInput({ onSubmit }) {
+function CommentInput({ onSubmit, autoFocus = false }) {
 
     const [text, setText] = useState("")
 
@@ -33,6 +33,7 @@ function CommentInput({ onSubmit }) {
                     rows={1}
                     className="w-full bg-transparent border-none outline-none rounded-2xl text-[14px] text-gray-900
                     font-['Plus_Jakarta_Sans'] resize-none py-3 px-4 leading-relaxed placeholder:text-gray-400"
+                    autoFocus={autoFocus}
                 />
             </div>
             <button

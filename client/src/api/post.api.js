@@ -216,7 +216,7 @@ export async function createComment(uuid, commentText, parentCommentId = null) {
         }
     } catch (err) {
         return {
-            success: true,
+            success: false,
             error: err.response?.data?.error || "Failed to post comment",
         }
     }
