@@ -2,7 +2,10 @@ import React, { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { Avatar } from "../components/Avatar.jsx"
 import { AvatarGradient } from "../components/AvatarGradient.jsx"
-import { getPost, toggleBookmarkApi, toggleLike as toggleLikeApi } from "../api/post.api.js"
+import { getPost, toggleBookmarkApi, toggleLike as toggleLikeApi, getComments, createComment } from "../api/post.api.js"
+
+import CommentInput from "../components/posts/CommentInput.jsx"
+import CommentItem from "../components/posts/CommentItem.jsx"
 
 import PostPageSkeleton from "../components/posts/PostPageSkeleton.jsx"
 import StatPill from "../components/posts/StatPill.jsx"
@@ -27,11 +30,26 @@ function PostPage() {
     const [likeCount, setLikeCount] = useState(0)
     const [copied, setCopied] = useState(false)
     const [bookmarked, setBookmarked] = useState(false)
-
+    const [comments, setComments] = useState(null)
+    const [commentsLoading, setCommentsLoading] = useState(true)
+    const [commentsCount, setCommentsCount] = useState(0)
 
     useEffect(() => {
 
         let cancelled = false
+
+        const loadComments = async () => {
+            setCommentsLoading(true)
+            const res = await getComments(uuid)
+            if (cancelled) return
+            setCommentsLoading(false)
+            if (res.success) {
+                setComments(res.data.comments ?? [])
+            }
+        }
+
+        loadComments()
+
         setLoading(true)
         setError(null)
 
@@ -52,6 +70,7 @@ function PostPage() {
             setLiked(p.is_liked)
             setLikeCount(p.likes_count)
             setBookmarked(p.is_bookmarked)
+            setCommentsCount(p.comments_count ?? 0)
 
         })
 
@@ -122,6 +141,20 @@ function PostPage() {
         setTimeout(() =>
             setCopied(false)
             , 2000)
+    }
+
+    const handleReply = async (text, parentCommentId) => {
+
+        const res = await createComment(uuid, text, parentCommentId)
+
+        if (!res.success) return 
+
+        setComments(c => c + 1)
+        
+        const refetch = await getComments(uuid)
+
+        if (refetch.success) setComments(refetch.data.comments ?? [])
+
     }
 
     const formatDate = (iso) => {
@@ -442,6 +475,37 @@ function PostPage() {
                             <FiShare size={14} />
                             {copied ? "Link copied!" : "Share"}
                         </button>
+                    </div>
+                    <div className="mt-10 pt-8 border-t border-gray-100" >
+                        <h3 className="font-['Bricolage_Grotesque'] text-lg font-bold text-gray-900 mb-5 flex items-center gap-2" >
+                            <FiMessageCircle size={16} />
+                            Comments · {commentsCount}
+                        </h3>
+
+                        <CommentInput onSubmit={(text) => handleReply(text, null)} />
+
+                        <div className="flex flex-col gap-4 mt-6" >
+                            {
+                                commentsLoading ? (
+                                    <p className="text-[13px] text-gray-400" >
+                                        Loading comments...
+                                    </p>
+                                ) : comments === null || comments.length === 0 ? (
+                                    <p className="text-[13px] text-gray-400" >
+                                        No Comments yet. Be the first !
+                                    </p>
+                                ) : (
+                                    comments.map(c => (
+                                        <CommentItem
+                                            key={c.id}
+                                            comment={c}
+                                            postUuid={uuid}
+                                            onReply={handleReply}
+                                        />
+                                    ))
+                                )
+                            }
+                        </div>
                     </div>
                 </article>
             </div>
