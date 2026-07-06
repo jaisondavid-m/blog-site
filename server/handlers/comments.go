@@ -175,27 +175,30 @@ func CreateComment(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to create comment",
+			"err":1,
 		})
 		return
 	}
 
 	res, err := tx.Exec(`
 		INSERT INTO blog_comments (uuid, post_id, user_id, parent_comment_id, comment_text)
-		VALUES (?, ?, ?, ?)
+		VALUES (?, ?, ?, ?, ?)
 	`, commentUUID, postID, userID, in.ParentCommentID, in.CommentText)
 
 	if err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to creatte comment",
+			"error": "Failed to create comment",
+			"err":2,
 		})
 		return
 	}
 
-	if _, err := tx.Exec("UDPATE blog_posts SET comments_count = comments_countt + 1 WHERE id = ?", postID); err != nil {
+	if _, err := tx.Exec("UPDATE blog_posts SET comments_count = comments_count + 1 WHERE id = ?", postID); err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to create comment",
+			"err":3,
 		})
 		return
 	}
@@ -203,6 +206,7 @@ func CreateComment(c *gin.Context) {
 	if err := tx.Commit(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to create comment", 
+			"err":4,
 		})
 		return 
 	}
