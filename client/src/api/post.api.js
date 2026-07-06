@@ -241,3 +241,20 @@ export async function updateComment(commentUuid, commentText) {
     }
 
 }
+
+export async function deleteComment(commentUuid) {
+
+    try {
+        const res = await api.delete(`/api/comments/${commentUuid}`)
+        return {
+            success: true,
+            data: res.data,
+        }
+    } catch (err) {
+        return {
+            success: false,
+            error: err.response?.data?.error || "Failed to delete comment",
+        }
+    }
+
+}
