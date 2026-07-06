@@ -222,3 +222,22 @@ export async function createComment(uuid, commentText, parentCommentId = null) {
     }
 
 }
+
+export async function updateComment(commentUuid, commentText) {
+
+    try {
+        const res = await api.put(`/api/comments/${commentUuid}`, {
+            comment_text: commentText,
+        })
+        return {
+            success: true,
+            data: res.data
+        }
+    } catch (err) {
+        return {
+            success: false,
+            error: err.response?.data?.error || "Failed to update comment",
+        }
+    }
+
+}

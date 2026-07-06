@@ -16,6 +16,8 @@ import {
     FiBookmark
 } from "react-icons/fi"
 
+import { useAuth } from "../context/AuthContext.jsx"
+
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080"
 
 function PostPage() {
@@ -33,6 +35,10 @@ function PostPage() {
     const [comments, setComments] = useState(null)
     const [commentsLoading, setCommentsLoading] = useState(true)
     const [commentsCount, setCommentsCount] = useState(0)
+    // const [currentUserId, setCurrentUserId] = useState(null)
+
+    const { user } = useAuth()
+    console.log(user.ID)
 
     useEffect(() => {
 
@@ -501,6 +507,7 @@ function PostPage() {
                                             comment={c}
                                             postUuid={uuid}
                                             onReply={handleReply}
+                                            currentUserId={user.ID}
                                         />
                                     ))
                                 )

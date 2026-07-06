@@ -5,6 +5,7 @@ import CommentInput from "./CommentInput.jsx"
 import CommentItem from "./CommentItem.jsx"
 import { toggleLike as toggleLikeApi, toggleBookmarkApi, getComments, createComment } from "../../api/post.api.js"
 import { FiBookmark, FiHeart, FiMessageCircle, FiMoreHorizontal, FiShare } from "react-icons/fi"
+import { useAuth } from "../../context/AuthContext.jsx"
 import { useNavigate } from "react-router-dom"
 
 function BlogPost({ post, onShare }) {
@@ -18,6 +19,8 @@ function BlogPost({ post, onShare }) {
     const [commentsLoading, setCommentsLoading] = useState(false)
     const [commentsCount, setCommentsCount] = useState(post.commentsCount ?? 0)
     const [saved, setSaved] = useState(post.isBookmarked ?? false)
+
+    const { user } = useAuth()
 
     const goToPost = () => {
         navigate(`/post/${post.uuid}`)
@@ -257,6 +260,7 @@ function BlogPost({ post, onShare }) {
                                         comment={c}
                                         postUuid={post.uuid}
                                         onReply={handleReply}
+                                        currentUserId={user.ID}
                                     />
                                     // <div key={c.id} className="flex gap-3">
                                     //     <Avatar
