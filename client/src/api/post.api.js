@@ -173,3 +173,15 @@ export async function updatePostStatus(uuid, status) {
     }
 
 }
+
+export async function updatePost(uuid, data) {
+    try {
+        const res = await api.put(`/api/posts/${uuid}`, data)
+        return { success: true, data:res.data }
+    } catch (err) {
+        return {
+            success: false,
+            error: err.response?.data?.error || "Failed to update post"
+        }
+    }
+}

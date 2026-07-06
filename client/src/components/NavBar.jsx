@@ -35,6 +35,7 @@ function NavBar() {
 
     const links = [
         { name: "Home", path: "/home" },
+        { name: "My Posts", path: "/my-posts" },
         { name: "Profile", path: "/profile" },
     ]
 

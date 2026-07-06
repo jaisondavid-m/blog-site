@@ -1,6 +1,6 @@
-import React, { useState, useRef } from "react"
-import { useNavigate } from "react-router-dom"
-import { createPost } from "../api/post.api.js"
+import React, { useState, useRef, useEffect } from "react"
+import { useNavigate, useSearchParams } from "react-router-dom"
+import { createPost, getPost, updatePost } from "../api/post.api.js"
 import {
     FiArrowLeft, FiSend, FiSave, FiLoader,
     FiAlertCircle, FiCheckCircle, FiImage,
@@ -29,6 +29,11 @@ function WritePage() {
     const [errors, setErrors] = useState({})
     const [saving, setSaving] = useState(false)
     const [toasts, setToasts] = useState([])
+
+    const [searchParams] = useSearchParams()
+    const editUuid = searchParams.get("edit")
+    const isEditing = Boolean(editUuid)
+    const [loadingPost, setLoadingPost] = useState(isEditing)
 
     const contentRef = useRef(null)
 
@@ -72,29 +77,81 @@ function WritePage() {
         setErrors({})
         setSaving(true)
 
-        const res = await createPost({
+        const payload = {
             title: title.trim(),
             excerpt: excerpt.trim(),
             content: contentRef.current?.innerHTML ?? content,
             tag: tag.toLowerCase(),
             cover_image: coverURL.trim(),
             status: submitStatus,
-        })
+        }
+
+        const res = isEditing
+            ? await updatePost(editUuid, payload)
+            : await createPost(payload)
 
         setSaving(false)
 
-        if (submitStatus === "published") {
+        if (!res.success) {
+            showToast(res.error || "Failed to save post", "error")
+            return
+        }
+
+        if (isEditing) {
+            showToast("Post updated!", "success")
+            if (submitStatus === "published") {
+                navigate(`/post/${editUuid}`)
+            }
+        } else if (submitStatus === "published") {
             navigate(`/posts/${res.data.uuid}`)
         } else {
             showToast("Draft saved!", "success")
         }
-
     }
 
     const exec = (command, value = null) => {
         contentRef.current?.focus()
         document.execCommand(command, false, value)
     }
+
+    useEffect(() => {
+
+        if (!editUuid) return
+
+        let cancelled = false
+
+        const loadPost = async () => {
+
+            setLoadingPost(true)
+            const res = await getPost(editUuid)
+            setLoadingPost(false)
+
+            if (cancelled) return
+
+            if (!res.success) {
+                showToast(res.error || "Failed to load post", "error")
+                return
+            }
+
+            const p = res.data.post
+
+            setTitle(p.title || "")
+            setExcerpt(p.title || "")
+            setContent(p.content || "")
+            setTag(p.tag || "")
+            setCoverURL(p.cover_image || "")
+            setStatus(p.status || "draft")
+
+            if (contentRef.current) {
+                contentRef.current.innerHTML = p.content || ""
+            }
+        }
+
+        loadPost()
+
+        return () => { cancelled = true }
+
+    },[editUuid])
 
     return (
         <>
@@ -217,10 +274,10 @@ function WritePage() {
             <div className="max-w-3xl mx-auto px-5 lg:px-8 py-10 fade-up" >
                 <div className="mb-8" >
                     <h1 className="font-['Bricolage_Grotesque'] text-2xl font-extrabold text-gray-900 tracking-tight" >
-                        Write a post
+                        { isEditing ? "Edit post" : "Write a post" }
                     </h1>
                     <p className="text-sm text-gray-400 mt-0.5 font-medium" >
-                        Share your story with the community
+                        { isEditing ? "Update your story" : "Share your story with the community"}
                     </p>
                 </div>
                 <div className="flex flex-col gap-6" >
@@ -384,7 +441,7 @@ function WritePage() {
                                 ? <FiLoader size={13} className="animate-spin" />
                                 : <FiSend size={13} />
                         }
-                        Publish post
+                        { isEditing ? "Update post" : "Publish post" }
                     </button>
                 </div>
             </div>

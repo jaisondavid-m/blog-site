@@ -85,17 +85,17 @@ function MyPostsPage() {
 
     const handleDelete = async () => {
 
-        if (!deleteTarget)
-            return
+        if (!deleteTarget) return
 
         setDeleting(true)
 
         const res = await deletePost(deleteTarget.uuid)
         setDeleting(false)
 
-        if (!res.success)
+        if (!res.success) {
             addToast(res.error || "Failed to delete post", "error")
             return
+        }
 
         setPosts(prev => prev.filter(p => p.uuid !== deleteTarget.uuid))
         addToast("Post Deleted")
@@ -112,9 +112,10 @@ function MyPostsPage() {
         const res = await updatePostStatus(post.uuid, nextStatus)
         setBusyUuid(null)
 
-        if (!res.success)
+        if (!res.success) {
             addToast(res.error || "Failed to update post", "error")
             return
+        }     
 
         setPosts(prev => prev.map(p => p.uuid === post.uuid ? { ...p, status: nextStatus } : p )) 
         addToast(nextStatus === "published" ? "Post Published" : "Moved to drafts")

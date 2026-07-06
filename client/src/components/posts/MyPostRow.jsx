@@ -14,7 +14,7 @@ function MyPostRow({ post, onEdit, onView, onDelete, onToggleStatus, busy }) {
                     <div className="flex items-center gap-2 mb-2" >
                         <span className={`text-[10px] font-bold tracking-widest uppercase px-2.5  py-1 
                             rounded-full border ${STATUS_STYLES[post.status] || STATUS_STYLES.draft}`} >
-                            {post.Status}
+                            {post.status}
                         </span>
                         <span className="text-[11px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-500 border border-indigo-100" >
                             { post.tag || "General" }
