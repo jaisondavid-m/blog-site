@@ -271,3 +271,64 @@ func UpdateComment(c *gin.Context) {
 	})
 
 }
+
+func DeleteComment(c *gin.Context) {
+
+	userID, _ := helper.GetUserID(c)
+	uuidParam := c.Param("uuid")
+
+	var ownerID, postID uint64
+
+	err := config.DB.QueryRow("SELECT user_id, post_id FROM blog_comments WHERE uuid = ? AND deleted_at IS NULL", uuidParam).
+		Scan(&ownerID, &postID)
+
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Comment not found",
+		})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch comment",
+		})
+		return
+	}
+
+	if ownerID != userID {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "You can only delete your own comments",
+		})
+		return
+	}
+
+	tx, err := config.DB.Begin()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete comment",
+		})
+		return
+	}
+
+	if _, err := tx.Exec("UPDATE blog_comments SET deleted_at = NOW() WHERE uuid = ?", uuidParam); err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete comment",
+		})
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete comment",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Comment deleted",
+	})
+
+}
