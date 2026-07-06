@@ -151,7 +151,7 @@ func CreateComment(c *gin.Context) {
 
 		var parentPostID uint64
 
-		err := config.DB.QueryRow("SELECT post_id FROM blog_comments WHERE id = ? AND deleted_at IS NULL", *in.ParentCommentID).Scan(*&parentPostID)
+		err := config.DB.QueryRow("SELECT post_id FROM blog_comments WHERE id = ? AND deleted_at IS NULL", *in.ParentCommentID).Scan(&parentPostID)
 
 		if err == sql.ErrNoRows || (err == nil && parentPostID != postID) {
 			c.JSON(http.StatusBadRequest, gin.H{
