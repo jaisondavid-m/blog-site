@@ -1,8 +1,8 @@
-import React , { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { AvatarGradient } from "../AvatarGradient.jsx"
 import { Avatar } from "../Avatar.jsx"
 import CommentInput from "./CommentInput.jsx"
-import { toggleLike as toggleLikeApi, toggleBookmarkApi } from "../../api/post.api.js"
+import { toggleLike as toggleLikeApi, toggleBookmarkApi, getComments, createComment } from "../../api/post.api.js"
 import { FiBookmark, FiHeart, FiMessageCircle, FiMoreHorizontal, FiShare } from "react-icons/fi"
 import { useNavigate } from "react-router-dom"
 
@@ -13,7 +13,9 @@ function BlogPost({ post, onShare }) {
     const [likeCount, setLikeCount] = useState(post.likes_count ?? 0)
     // const [saved, setSaved] = useState(false)
     const [showComments, setShowComments] = useState(false)
-    const [comments, setComments] = useState(post.comments)
+    const [comments, setComments] = useState(null)
+    const [commentsLoading, setCommentsLoading] = useState(false)
+    const [commentsCount, setCommentsCount] = useState(post.commentsCount ?? 0)
     const [saved, setSaved] = useState(post.isBookmarked ?? false)
 
     const goToPost = () => {
@@ -64,21 +66,42 @@ function BlogPost({ post, onShare }) {
     }
 
     const handleShare = () => {
-        navigator.clipboard?.writeText(`${window.location.origin}/post/${post.uuid}`).catch(() => {})
+        navigator.clipboard?.writeText(`${window.location.origin}/post/${post.uuid}`).catch(() => { })
         onShare()
     }
 
-    const addComment = (text) => {
+    const addComment = async (text) => {
+
+        const res = await createComment(post.uuid, text)
+
+        if (!res.success) return
+
         setComments(prev => [
-            ...prev,
+            ...(prev ?? []),
             {
-                id: `local-${Date.now()}`,
-                author: { firstName: "You" , lastName: "", username: "you",avatarURL: null },
-                text,
-                postedAt: "Just now",
+                id: res.data.id,
+                uuid: res.data.uuid,
+                author: "You",
+                comment_text: text,
+                created_at: new Date().toISOString(),
+                replies: [],
             },
         ])
+        setCommentsCount(c => c + 1)
     }
+
+    useEffect(() => {
+
+        if (!showComments || comments !== null) return
+
+        setCommentsLoading(true)
+
+        getComments(post.uuid).then(res => {
+            setCommentsLoading(false)
+            if (res.success) setComments(res.data.comments ?? [])
+        })
+
+    }, [showComments])
 
     return (
         <article
@@ -111,7 +134,7 @@ function BlogPost({ post, onShare }) {
                     </div>
                     <div className="flex items-center gap-2" >
                         <span className="text-[11px] font-bold tracking-widest uppercase px-3 py-1 rounded-full
-                                bg-indigo-50 text-indigo-500 border border-indigo-100" 
+                                bg-indigo-50 text-indigo-500 border border-indigo-100"
                         >
                             {post.tag}
                         </span>
@@ -139,11 +162,10 @@ function BlogPost({ post, onShare }) {
                         aria-pressed={liked}
                         className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-semibold
                             transition-all duration-150 active:scale-95
-                                ${
-                                    liked
-                                        ? "bg-rose-50 text-rose-500 border border-rose-100"
-                                        : "bg-gray-50 text-gray-500 border border-gray-100 hover:bg-rose-50 hover:text-rose-400 hover:border-rose-100"
-                                }
+                                ${liked
+                                ? "bg-rose-50 text-rose-500 border border-rose-100"
+                                : "bg-gray-50 text-gray-500 border border-gray-100 hover:bg-rose-50 hover:text-rose-400 hover:border-rose-100"
+                            }
                             `}
                     >
                         <FiHeart size={14} style={{ fill: liked ? "currentColor" : "none" }} />
@@ -156,15 +178,14 @@ function BlogPost({ post, onShare }) {
                         aria-label="Toggle comments"
                         aria-expanded={showComments}
                         className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-semibold transition-all duration-150 active:scale-95
-                                ${
-                                    showComments
-                                        ? "bg-indigo-50 text-indigo-500 border border-indigo-100"
-                                        : "bg-gray-50 text-gray-500 border border-gray-100 hover:bg-indigo-50 hover:text-indigo-400 hover:border-indigo-100"
-                                }
+                                ${showComments
+                                ? "bg-indigo-50 text-indigo-500 border border-indigo-100"
+                                : "bg-gray-50 text-gray-500 border border-gray-100 hover:bg-indigo-50 hover:text-indigo-400 hover:border-indigo-100"
+                            }
                             `}
                     >
                         <FiMessageCircle size={14} />
-                        {comments.length}
+                        {commentsCount}
                     </button>
 
                     {/* Right side */}
@@ -184,11 +205,10 @@ function BlogPost({ post, onShare }) {
                             aria-pressed={saved}
                             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-semibold
                                 transition-all duration-150 active:scale-95
-                                    ${
-                                        saved
-                                            ? "bg-amber-50 text-amber-500 border border-amber-100"
-                                            : "bg-gray-50 text-gray-500 border border-gray-100 hover:bg-amber-50 hover:text-amber-400 hover:border-amber-100"
-                                    }
+                                    ${saved
+                                    ? "bg-amber-50 text-amber-500 border border-amber-100"
+                                    : "bg-gray-50 text-gray-500 border border-gray-100 hover:bg-amber-50 hover:text-amber-400 hover:border-amber-100"
+                                }
                                 `}
                         >
                             <FiBookmark
@@ -204,37 +224,43 @@ function BlogPost({ post, onShare }) {
                 {/* Comments Section */}
                 {showComments && (
                     <div className="mt-5 pt-4 border-t border-gray-50" onClick={(e) => e.stopPropagation()} >
-                        {comments.length === 0 && (
+                        {comments === null || commentsLoading ? (
+                            <p className="text-[13px] text-gray-400 mb-3" >
+                                Loading comments...
+                            </p>
+                        ) : comments.length === 0 ? (
                             <p className="text-[13px] text-gray-400 mb-3" >
                                 No comments yet. Be the first!
                             </p>
-                        )}
-                        <div className="flex flex-col gap-3 mb-1" >
-                            {comments.map(c => (
-                                <div key={c.id} className="flex gap-3">
-                                    <Avatar
-                                        firstName={c.author.name}
-                                        lastName={c.author.lastName}
-                                        avatarURL={c.author.avatarURL}
-                                        size="w-8 h-8"
-                                        textSize="text-[10px]"
-                                    />
-                                    <div className="flex-1 bg-gray-50 rounded-2xl border border-gray-100 px-4 py-3" >
-                                        <div className="flex items-baseline gap-2 mb-1" >
-                                            <span className="text-[13px] font-bold text-gray-800" >
-                                                {c.author.firstName} {c.author.lastName}
-                                            </span>
-                                            <span className="text-[11px] text-gray-400" >
-                                                {c.postedAt}
-                                            </span>
+                        ) : (
+                            <div className="flex flex-col gap-3 mb-1" >
+                                {comments.map(c => (
+                                    <div key={c.id} className="flex gap-3">
+                                        <Avatar
+                                            firstName={c.author_name?.split(" ")[0]}
+                                            lastName={c.author_name?.split(" ").slice(1).join(" ")}
+                                            avatarURL={c.author_avatar}
+                                            size="w-8 h-8"
+                                            textSize="text-[10px]"
+                                        />
+                                        <div className="flex-1 bg-gray-50 rounded-2xl border border-gray-100 px-4 py-3" >
+                                            <div className="flex items-baseline gap-2 mb-1" >
+                                                <span className="text-[13px] font-bold text-gray-800" >
+                                                    {c.author_name}
+                                                </span>
+                                                <span className="text-[11px] text-gray-400" >
+                                                    {c.created_at}
+                                                </span>
+                                            </div>
+                                            <p className="text-[13.5px] text-gray-600 leading-relaxed m-0" >
+                                                {c.comment_text}
+                                            </p>
                                         </div>
-                                        <p className="text-[13.5px] text-gray-600 leading-relaxed m-0" >
-                                            {c.text}
-                                        </p>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
+
                         <CommentInput onSubmit={addComment} />
                     </div>
                 )}

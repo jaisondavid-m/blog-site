@@ -131,7 +131,8 @@ function Home() {
                             onClick={() => navigate("/write")}
                             className="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-600 shadow-sm
                         hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition"
-                        >
+                      
+                      >
                             <FiEdit size={14} />
                             Write a Post
                         </button>

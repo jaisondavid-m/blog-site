@@ -185,3 +185,40 @@ export async function updatePost(uuid, data) {
         }
     }
 }
+
+export async function getComments(uuid) {
+
+    try {
+        const res = await api.get(`/api/posts/${uuid}/comments`)
+        return {
+            success: true,
+            data: res.data,
+        }
+    } catch (err) {
+        return {
+            success: false,
+            error: err.response?.data?.error || "Failed to load comments",
+        }
+    }
+
+}
+
+export async function createComment(uuid, commentText, parentCommentId = null) {
+
+    try {
+        const res = await api.post(`/api/posts/${uuid}/comments`, {
+            comment_text: commentText,
+            parent_comment_id: parentCommentId,
+        })
+        return {
+            success: true,
+            data: res.data,
+        }
+    } catch (err) {
+        return {
+            success: true,
+            error: err.response?.data?.error || "Failed to post comment",
+        }
+    }
+
+}

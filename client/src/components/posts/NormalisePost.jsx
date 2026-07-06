@@ -27,7 +27,8 @@ function NormalisePost(raw) {
         readTime: estimateReadTime(raw.excerpt),
         publishedAt: formatDate(raw.published_at),
         likes_count: raw.likes_count ?? 0,
-        comments: [],
+        commentsCount: raw.comments_count ?? 0,
+        comments: null,
         author: {
             firstName,
             lastName,
