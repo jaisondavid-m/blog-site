@@ -261,8 +261,13 @@ func UpdateComment(c *gin.Context) {
 
 	if _, err := config.DB.Exec("UPDATE blog_comments SET comment_text = ? WHERE uuid = ?", in.CommentText, uuidParam); err != nil {
 		c.JSON(http.StatusOK, gin.H{
-			"message": "Comment updated",
+			"message": "Failed to update comment",
 		})
+		return 
 	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Comments updated",
+	})
 
 }
