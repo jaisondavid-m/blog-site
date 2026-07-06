@@ -8,6 +8,7 @@ import (
 
 	"server/config"
 	"server/models"
+	"server/helper"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -110,6 +111,107 @@ func GetComments(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"comments": roots,
+	})
+
+}
+
+func CreateComment(c *gin.Context) {
+
+	userID, _ := helper.GetUserID(c)
+	uuidParam := c.Param("uuid")
+
+	var in models.CreateCommentInput
+
+	if err := c.ShouldBindJSON(&in); err != nil || strings.TrimSpace(in.CommentText) == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Comment text is required",
+		})
+		return
+	}
+
+	var postID uint64
+
+	err := config.DB.QueryRow("SELECT id FROM blog_posts WHERE uuid = ? AND deleted_at IS NULL", uuidParam).Scan(&postID)
+
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Post not found",
+		})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch post",
+		})
+		return
+	}
+
+	if in.ParentCommentID != nil {
+
+		var parentPostID uint64
+
+		err := config.DB.QueryRow("SELECT post_id FROM blog_comments WHERE id = ? AND deleted_at IS NULL", *in.ParentCommentID).Scan(*&parentPostID)
+
+		if err == sql.ErrNoRows || (err == nil && parentPostID != postID) {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid parent comment",
+			})
+			return
+		}
+
+		if err != nil && err != sql.ErrNoRows {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to validate parent comment",
+			})
+			return
+		}
+	}
+
+	commentUUID := uuid.NewString()
+
+	tx, err := config.DB.Begin()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create comment",
+		})
+		return
+	}
+
+	res, err := tx.Exec(`
+		INSERT INTO blog_comments (uuid, post_id, user_id, parent_comment_id, comment_text)
+		VALUES (?, ?, ?, ?)
+	`, commentUUID, postID, userID, in.ParentCommentID, in.CommentText)
+
+	if err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to creatte comment",
+		})
+		return
+	}
+
+	if _, err := tx.Exec("UDPATE blog_posts SET comments_count = comments_countt + 1 WHERE id = ?", postID); err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create comment",
+		})
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create comment", 
+		})
+		return 
+	}
+
+	id, _ := res.LastInsertId()
+
+	c.JSON(http.StatusCreated, gin.H{
+		"id": id,
+		"uuid": commentUUID,
 	})
 
 }

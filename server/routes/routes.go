@@ -73,6 +73,7 @@ func SetupRoutes(r *gin.Engine) {
 		posts.POST("/:uuid/bookmark", middleware.RequireAuth(), handlers.ToggleBookmark)
 
 		posts.GET("/:uuid/comments", middleware.RequireAuth(), handlers.GetComments)
+		posts.POST("/::uuid/comments", middleware.RequireAuth(), handlers.CreateComment)
 		
 	}
 

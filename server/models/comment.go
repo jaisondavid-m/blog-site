@@ -17,3 +17,8 @@ type Comment struct {
 	Replies 		[]*Comment 		`json:"replies"`
 
 }
+
+type CreateCommentInput struct {
+	CommentText 		string 		`json:"comment_text" binding:"required"`
+	ParentCommentID 	*uint64 	`json:"parent_comment_id"`
+}
