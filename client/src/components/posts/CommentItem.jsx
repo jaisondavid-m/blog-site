@@ -2,8 +2,8 @@ import React, { useState } from "react"
 import { Avatar } from "../Avatar.jsx"
 import CommentInput from "./CommentInput.jsx"
 import ConfirmDeleteCommentModal from "./ConfirmDeleteCommentModal.jsx"
-import { updateComment, deleteComment } from "../../api/post.api.js"
-import { FiEdit2, FiTrash2 } from "react-icons/fi"
+import { updateComment, deleteComment, toggleCommentLike } from "../../api/post.api.js"
+import { FiEdit2, FiTrash2, FiHeart } from "react-icons/fi"
 
 // import ConfirmDeleteCommentModal from "./ConfirmDeleteCommentModal.jsx"
 
@@ -22,6 +22,10 @@ function CommentItem({ comment, postUuid, onReply, onDelete, currentUserId, dept
 
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [deleting, setDeleting] = useState(false)
+
+    const [liked, setLiked] = useState(comment.liked ?? false)
+    const [likesCount, setLikesCount] = useState(comment.likes_count ?? 0)
+    const [likeBusy, setLikeBusy] = useState(false)
 
     const isOwner = currentUserId != null && comment.user_id === currentUserId
 
@@ -63,6 +67,33 @@ function CommentItem({ comment, postUuid, onReply, onDelete, currentUserId, dept
 
         setShowDeleteModal(false)
         onDelete?.(comment.id)
+
+    }
+
+    const handleToggleLike = async () => {
+
+        if (likeBusy) return
+
+        setLikeBusy(true)
+
+        const prevLiked = liked
+        const prevCount = likesCount
+
+        setLiked(!prevLiked)
+        setLikesCount(prevLiked ? prevCount - 1 : prevCount + 1)
+
+        const res = await toggleCommentLike(comment.uuid)
+
+        setLikeBusy(false)
+
+        if (!res.success) {
+            setLiked(prevLiked)
+            setLikesCount(prevCount)
+            return
+        }
+
+        setLiked(res.data.liked)
+        setLikesCount(res.data.likes_count)
 
     }
 
@@ -149,12 +180,35 @@ function CommentItem({ comment, postUuid, onReply, onDelete, currentUserId, dept
                 </div>
 
                 {depth < 4 && (
-                    <button
-                        onClick={() => setShowReplyBox(p => !p)}
-                        className="text-[12px] font-semibold text-gray-400 hover:text-indigo-500 mt-1.5 ml-1"
-                    >
-                        Reply
-                    </button>
+                    <div className="flex items-center gap-3 mt-1.5 ml-1" >
+                        <button
+                            onClick={handleToggleLike}
+                            disabled={likeBusy}
+                            aria-label={liked ? "Unlike comment" : "Like comment"}
+                            className={`flex items-center gap-1 text-[12px] font-semibold transition-colors
+                                ${
+                                    liked
+                                        ? "text-red-500"
+                                        : "text-gray-500 hover:text-red-500"
+                                }
+                            `}
+                        >
+                            <FiHeart size={12} className={liked ? "fill-red-500" : ""} />
+                            {
+                                likesCount > 0 && (
+                                    <span>
+                                        {likesCount}
+                                    </span>
+                                )
+                            }
+                        </button>
+                        <button
+                            onClick={() => setShowReplyBox(p => !p)}
+                            className="text-[12px] font-semibold text-gray-400 hover:text-indigo-500 mt-1.5 ml-1"
+                        >
+                            Reply
+                        </button>
+                    </div>
                 )}
 
                 {showReplyBox && (

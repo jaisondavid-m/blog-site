@@ -1,4 +1,3 @@
-import { data } from "react-router-dom"
 import api from "./axios.js"
 
 export async function getPosts({ page = 1, limit = 10, tag = "" }) {
@@ -254,6 +253,23 @@ export async function deleteComment(commentUuid) {
         return {
             success: false,
             error: err.response?.data?.error || "Failed to delete comment",
+        }
+    }
+
+}
+
+export async function toggleCommentLike(commentUuid) {
+
+    try {
+        const res = await api.post(`/api/comments/${commentUuid}/like`)
+        return {
+            success: true,
+            data: res.data,
+        }
+    } catch (err) {
+        return {
+            success: false,
+            error: err.response?.data?.error || "Failed to toggle like",
         }
     }
 

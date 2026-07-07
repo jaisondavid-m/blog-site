@@ -49,7 +49,7 @@ func GetComments(c *gin.Context) {
 				WHERE bcl.comment_id = cm.id AND bcl.user_id = ?
 			) AS liked
 			FROM blog_comments cm
-			JOINT users u ON u.id = cm.user_id
+			JOIN users u ON u.id = cm.user_id
 			WHERE cm.post_id = ? AND cm.deleted_at IS NULL
 			ORDER BY cm.created_at ASC
 	`, userID, postID)
