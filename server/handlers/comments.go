@@ -304,10 +304,10 @@ func DeleteComment(c *gin.Context) {
 	userID, _ := helper.GetUserID(c)
 	uuidParam := c.Param("uuid")
 
-	var ownerID, postID uint64
+	var commentID, ownerID, postID uint64
 
-	err := config.DB.QueryRow("SELECT user_id, post_id FROM blog_comments WHERE uuid = ? AND deleted_at IS NULL", uuidParam).
-		Scan(&ownerID, &postID)
+	err := config.DB.QueryRow("SELECT id, user_id, post_id FROM blog_comments WHERE uuid = ? AND deleted_at IS NULL", uuidParam).
+		Scan(&commentID ,&ownerID, &postID)
 
 	if err == sql.ErrNoRows {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -339,8 +339,73 @@ func DeleteComment(c *gin.Context) {
 		return
 	}
 
-	if _, err := tx.Exec("UPDATE blog_comments SET deleted_at = NOW() WHERE uuid = ?", uuidParam); err != nil {
+	rows, err := tx.Query(`
+		WITH RECURSIVE descendants AS (
+			SELECT id FROM blog_comments WHERE id = ? AND deleted_at IS NULL
+			UNION ALL
+			SELECT bc.id
+			FROM blog_comments bc
+			INNER JOIN descendants d ON bc.parent_comment_id = d.id
+			WHERE bc.deleted_at IS NULL
+		)
+		SELECT id FROM descendants
+	`, commentID)
+
+	if err != nil {
 		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete comment",
+		})
+		return
+	}
+
+	var ids []uint64
+
+	for rows.Next() {
+		var id uint64
+		if err := rows.Scan(&id); err != nil {
+			rows.Close()
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to delete comment",
+			})
+			return
+		}
+		ids = append(ids, id)
+	}
+	rows.Close()
+
+	if len(ids) == 0 {
+		tx.Rollback()
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Comment not found",
+		})
+		return
+	}
+
+	placeholders := strings.TrimSuffix(strings.Repeat("?,", len(ids)), ",")
+
+	args := make([]interface{}, len(ids))
+
+	for i, id := range ids {
+		args[i] = id
+	}
+
+	if _, err := tx.Exec(
+		"UPDATE blog_comments SET deleted_at = NOW() WHERE id IN ("+placeholders+")",
+		args...,
+	); err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete comment",
+		})
+		return
+	}
+
+	if _, err := tx.Exec(
+		"UPDATE blog_posts SET comments_count = comments_count - ? WHERE id = ?",
+		len(ids), postID,
+	); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to delete comment",
 		})
