@@ -22,6 +22,14 @@ func GetComments(c *gin.Context) {
 
 	userID, _ := helper.GetUserID(c)
 
+	sortParam := c.DefaultQuery("sort", "newest")
+
+	orderBy := "cm.created_at ASC"
+
+	if sortParam == "newest" {
+		orderBy = "cm.created_at DESC"
+	}
+
 	var postID uint64
 
 	err := config.DB.QueryRow("SELECT id FROM blog_posts WHERE uuid = ? AND deleted_at IS NULL", uuidParam).Scan(&postID)
@@ -51,7 +59,7 @@ func GetComments(c *gin.Context) {
 			FROM blog_comments cm
 			JOIN users u ON u.id = cm.user_id
 			WHERE cm.post_id = ? AND cm.deleted_at IS NULL
-			ORDER BY cm.created_at ASC
+			ORDER BY `+orderBy+`
 	`, userID, postID)
 
 	// rows, err := config.DB.Query(`

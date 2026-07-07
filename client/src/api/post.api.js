@@ -185,10 +185,12 @@ export async function updatePost(uuid, data) {
     }
 }
 
-export async function getComments(uuid) {
+export async function getComments(uuid, sort = "newest") {
 
     try {
-        const res = await api.get(`/api/posts/${uuid}/comments`)
+        const res = await api.get(`/api/posts/${uuid}/comments`, {
+            params: { sort }
+        })
         return {
             success: true,
             data: res.data,

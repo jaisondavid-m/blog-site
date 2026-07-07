@@ -19,6 +19,7 @@ function BlogPost({ post, onShare }) {
     const [commentsLoading, setCommentsLoading] = useState(false)
     const [commentsCount, setCommentsCount] = useState(post.commentsCount ?? 0)
     const [saved, setSaved] = useState(post.isBookmarked ?? false)
+    const [commentSort, setCommentSort] = useState("newest")
 
     const { user } = useAuth()
 
@@ -95,7 +96,7 @@ function BlogPost({ post, onShare }) {
     }
 
     const loadComments = async () => {
-        const res = await getComments(post.uuid)
+        const res = await getComments(post.uuid, commentSort)
         if (res.success) setComments(res.data.comments ?? [])
     }
 
@@ -110,7 +111,7 @@ function BlogPost({ post, onShare }) {
 
     useEffect(() => {
 
-        if (!showComments || comments !== null) return
+        if (!showComments) return
 
         setCommentsLoading(true)
 
@@ -121,7 +122,7 @@ function BlogPost({ post, onShare }) {
 
         loadComments().finally(() => setCommentsLoading(false))
 
-    }, [showComments])
+    }, [showComments, commentSort])
 
     return (
         <article
@@ -244,6 +245,24 @@ function BlogPost({ post, onShare }) {
                 {/* Comments Section */}
                 {showComments && (
                     <div className="mt-5 pt-4 border-t border-gray-50" onClick={(e) => e.stopPropagation()} >
+                        <div className="flex items-center justify-between mb-3" >
+                            <span className="text-[13px] font-bold text-gray-700" >
+                                Comments
+                            </span>
+                            <select
+                                value={commentSort}
+                                onChange={(e) => setCommentSort(e.target.value)}
+                                className="text-[12px] font-semibold text-gray-500 bg-gray-50 border border-gray-200
+                                rounded-lg px-2 py-1 outline-none cursor-pointer hover:border-gray-300"
+                            >
+                                <option value="newest">
+                                    Newest
+                                </option>
+                                <option value="oldest">
+                                    Oldest first
+                                </option>
+                            </select>
+                        </div>
                         {comments === null || commentsLoading ? (
                             <p className="text-[13px] text-gray-400 mb-3" >
                                 Loading comments...

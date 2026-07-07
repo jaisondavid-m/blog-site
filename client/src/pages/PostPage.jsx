@@ -36,6 +36,7 @@ function PostPage() {
     const [commentsLoading, setCommentsLoading] = useState(true)
     const [commentsCount, setCommentsCount] = useState(0)
     // const [currentUserId, setCurrentUserId] = useState(null)
+    const [commentSort, setCommentSort] = useState("newest")
 
     const { user } = useAuth()
     console.log(user.ID)
@@ -44,17 +45,7 @@ function PostPage() {
 
         let cancelled = false
 
-        const loadComments = async () => {
-            setCommentsLoading(true)
-            const res = await getComments(uuid)
-            if (cancelled) return
-            setCommentsLoading(false)
-            if (res.success) {
-                setComments(res.data.comments ?? [])
-            }
-        }
 
-        loadComments()
 
         setLoading(true)
         setError(null)
@@ -86,6 +77,26 @@ function PostPage() {
 
     useEffect(() => {
 
+        let cancelled = false
+
+        const loadComments = async () => {
+            setCommentsLoading(true)
+            const res = await getComments(uuid)
+            if (cancelled) return
+            setCommentsLoading(false)
+            if (res.success) {
+                setComments(res.data.comments ?? [])
+            }
+        }
+
+        loadComments()
+
+        return () => { cancelled = true }
+
+    }, [uuid, commentSort])
+
+    useEffect(() => {
+
         if (!post) return
 
         const timer = setTimeout(() => {
@@ -97,7 +108,7 @@ function PostPage() {
                     img.style.display = "none"
                 }
             })
-        },100)
+        }, 100)
 
         return () => clearTimeout(timer)
 
@@ -134,7 +145,7 @@ function PostPage() {
 
         if (!res.success) {
             setBookmarked(prev)
-            return 
+            return
         }
 
         setBookmarked(res.data.bookmarked)
@@ -153,11 +164,11 @@ function PostPage() {
 
         const res = await createComment(uuid, text, parentCommentId)
 
-        if (!res.success) return 
+        if (!res.success) return
 
         setComments(c => c + 1)
-        
-        const refetch = await getComments(uuid)
+
+        const refetch = await getComments(uuid, commentSort)
 
         if (refetch.success) setComments(refetch.data.comments ?? [])
 
@@ -370,11 +381,10 @@ function PostPage() {
                                 onClick={toggleBookmark}
                                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[13px] font-semibold
                                     transition-all duration-150 active:scale-95 border
-                                        ${
-                                            bookmarked
-                                                ? "bg-amber-50 text-amber-500 border-amber-500"
-                                                : "bg-gray-50 text-gray-500 border-gray-100 hover:bg-amber-50 hover:text-amber-400 hover:border-amber-100"
-                                        }
+                                        ${bookmarked
+                                        ? "bg-amber-50 text-amber-500 border-amber-500"
+                                        : "bg-gray-50 text-gray-500 border-gray-100 hover:bg-amber-50 hover:text-amber-400 hover:border-amber-100"
+                                    }
                                     `}
                             >
                                 <FiBookmark
@@ -483,10 +493,22 @@ function PostPage() {
                         </button>
                     </div>
                     <div className="mt-10 pt-8 border-t border-gray-100" >
-                        <h3 className="font-['Bricolage_Grotesque'] text-lg font-bold text-gray-900 mb-5 flex items-center gap-2" >
-                            <FiMessageCircle size={16} />
-                            Comments · {commentsCount}
-                        </h3>
+                        <div className="flex items-center justify-between mb-5" >
+                            <h3 className="font-['Bricolage_Grotesque'] text-lg font-bold text-gray-900 mb-5 flex items-center gap-2" >
+                                <FiMessageCircle size={16} />
+                                Comments · {commentsCount}
+                            </h3>
+
+                            <select
+                                value={commentSort}
+                                onChange={(e) => setCommentSort(e.target.value)}
+                                className="text-[12px] font-semibold text-gray-500 bg-gray-50 border border-gray-200
+                                rounded-lg px-2 py-1 outline-none cursor-pointer hover:border-gray-300"
+                            >
+                                <option value="newest">Newest first</option>
+                                <option value="oldest">Oldest first</option>
+                            </select>
+                        </div>
 
                         <CommentInput onSubmit={(text) => handleReply(text, null)} />
 
