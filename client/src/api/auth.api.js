@@ -47,6 +47,26 @@ export const loginUser = async (data) => {
     }
 }
 
+export const guestLogin = async () => {
+
+    try {
+        const response = await api.post("/api/auth/guest")
+        return {
+            success: true,
+            data: response.data
+        }
+    } catch (error) {
+        return {
+            success: false,
+            error:
+                error.response?.data?.error ||
+                error.message || 
+                "Guest Login Failed",
+        }
+    }
+
+}
+
 export const logoutUser = async () => {
     try {
         await api.post("/api/auth/logout")

@@ -27,6 +27,8 @@ CREATE TABLE users (
 );
 
 ALTER TABLE users ADD COLUMN avatar_url VARCHAR(255) DEFAULT '';
+ALTER TABLE users ADD COLUMN is_guest BOOLEAN NOT NULL DEFAULT FALSE;
+CREATE INDEX idx_users_is_guest ON users(is_guest);
 
 CREATE TABLE otp_requests (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

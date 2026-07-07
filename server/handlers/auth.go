@@ -196,13 +196,14 @@ func Login(c *gin.Context) {
 }
 
 func Me(c *gin.Context) {
+
 	userID := c.MustGet("user_id").(uint64)
 
 	var user models.User
 	err := config.DB.QueryRow(
-		"SELECT id, uuid, first_name, last_name, username, email, email_verified, avatar_url FROM users WHERE id = ?",
+		"SELECT id, uuid, first_name, last_name, username, email, email_verified, avatar_url, is_guest FROM users WHERE id = ?",
 		userID,
-	).Scan(&user.ID, &user.UUID, &user.FirstName, &user.LastName, &user.Username, &user.Email, &user.EmailVerified, &user.AvatarURL)
+	).Scan(&user.ID, &user.UUID, &user.FirstName, &user.LastName, &user.Username, &user.Email, &user.EmailVerified, &user.AvatarURL, &user.IsGuest)
 
 	if err != nil {
 		c.JSON(http.StatusNotFound,gin.H{

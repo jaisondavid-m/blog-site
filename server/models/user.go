@@ -24,4 +24,5 @@ type User struct {
 	EmailVerified	bool
 	PasswordHash 	string
 	AvatarURL 		string
+	IsGuest			bool
 }

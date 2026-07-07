@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react"
 import { replace, useSearchParams, useNavigate } from "react-router-dom"
-import { registerUser, loginUser , getMe } from "../api/auth.api.js"
+import { registerUser, loginUser , getMe, guestLogin } from "../api/auth.api.js"
 import { useAuth } from "../context/AuthContext.jsx"
 
 import {
@@ -354,6 +354,8 @@ function AuthPage() {
     const [remember, setRemember] = useState(false)
     const [showLogPw, setShowLogPw] = useState(false)
 
+    const [guestLoading, setGuestLoading] = useState(false)
+
     /* Toast helper */
     const addToast = useCallback((message, type) => {
         const id = Date.now()
@@ -449,6 +451,28 @@ function AuthPage() {
         }
 
     }
+
+    const handleGuestLogin = async () => {
+
+        setGuestLoading(true)
+
+        const result = await guestLogin()
+
+        setGuestLoading(false)
+
+        if (result.success) {
+            const meRes = await getMe()
+            if (meRes.success) {
+                setUser(meRes.data.user)
+            }
+            addToast("Signed in as guest", "success")
+            navigate("/home", { replace: true })
+        } else {
+            addToast(result.error || "Could not start guest session.", "error")
+        }
+
+    }
+
     useEffect(() => {
         const mode = searchParams.get("mode")
         if (mode === "register") {
@@ -679,6 +703,22 @@ function AuthPage() {
                                 </>
                             )}
                         </div>
+                        <Divider label="Or" />
+                        <button
+                            type="button"
+                            onClick={handleGuestLogin}
+                            disabled={guestLoading}
+                            className="w-full py-3.5 rounded-xl border-[1.5px] border-gray-200 bg-white
+                            text-[14px] font-bold text-gray-700 flex items-center justify-center gap-2
+                            hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-[0.98]
+                            font-['Plus_Jakarta_Sans'] disabled:opacity-60"
+                        >
+                            {
+                                guestLoading
+                                    ? <><FiLoader size={16} className="animate-spin" /> Signing in...</>
+                                    : <>Continue as Guest <FiArrowRight size={15} /></>
+                            }
+                        </button>
                     </div>
                 </main>
             </div>
