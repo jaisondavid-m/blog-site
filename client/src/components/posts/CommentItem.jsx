@@ -114,8 +114,8 @@ function CommentItem({ comment, postUuid, onReply, onDelete, currentUserId, dept
                 firstName={firstName}
                 lastName={lastName}
                 avatarURL={comment.author_avatar}
-                size="w-8 h-8"
-                textSize="text-[10px]"
+                size={depth > 0 ? "w-6 h-6" : "w-8 h-8"}
+                textSize="text-[9px]"
             />
             <div className="flex-1" >
                 <div className="bg-gray-50 rounded-2xl border border-gray-100 px-4 py-3" >
@@ -235,10 +235,18 @@ function CommentItem({ comment, postUuid, onReply, onDelete, currentUserId, dept
                                         hover:text-indigo-700 ml-1 transition-colors"
                                     >
                                         <span className="w-5 h-px bg-indigo-300" />
-                                        View {totalReplies}
+                                        View {totalReplies} {totalReplies === 1 ? "reply" : "replies"}
                                     </button>
                                 ) : (
                                     <>
+                                        <button
+                                            onClick={() => setShowReplies(false)}
+                                            className="flex items-center gap-2 text-[12.5px] font-bold text-gray-400
+                                            hover:text-gray-600 mb-2.5 ml-1 transition-colors"
+                                        >
+                                            <span className="w-5 h-px bg-gray-300" />
+                                            Hide {totalReplies === 1 ? "reply" : "replies"}
+                                        </button>
                                         <div className="flex flex-col gap-3 mt-3 pl-4 border-l-2 border-gray-100" >
                                             {
                                                 comment.replies.map(r => (
