@@ -20,6 +20,8 @@ func GetComments(c *gin.Context) {
 
 	uuidParam := c.Param("uuid")
 
+	userID, _ := helper.GetUserID(c)
+
 	var postID uint64
 
 	err := config.DB.QueryRow("SELECT id FROM blog_posts WHERE uuid = ? AND deleted_at IS NULL", uuidParam).Scan(&postID)
@@ -41,12 +43,26 @@ func GetComments(c *gin.Context) {
 	rows, err := config.DB.Query(`
 		SELECT
 			cm.id, cm.uuid, cm.post_id, cm.user_id, u.first_name, u.last_name, u.avatar_url,
-			cm.parent_comment_id, cm.comment_text, cm.likes_count, cm.created_at
-		FROM blog_comments cm
-		JOIN users u ON u.id = cm.user_id
-		WHERE cm.post_id = ? AND cm.deleted_at IS NULL
-		ORDER BY cm.created_at ASC
-	`, postID)
+			cm.parent_comment_id, cm.comment_text, cm.likes_count, cm.created_at,
+			EXISTS(
+				SELECT 1 FROM blog_comment_likes bcl
+				WHERE bcl.comment_id = cm.id AND bcl.user_id = ?
+			) AS liked
+			FROM blog_comments cm
+			JOINT users u ON u.id = cm.user_id
+			WHERE cm.post_id = ? AND cm.deleted_at IS NULL
+			ORDER BY cm.created_at ASC
+	`, userID, postID)
+
+	// rows, err := config.DB.Query(`
+	// 	SELECT
+	// 		cm.id, cm.uuid, cm.post_id, cm.user_id, u.first_name, u.last_name, u.avatar_url,
+	// 		cm.parent_comment_id, cm.comment_text, cm.likes_count, cm.created_at
+	// 	FROM blog_comments cm
+	// 	JOIN users u ON u.id = cm.user_id
+	// 	WHERE cm.post_id = ? AND cm.deleted_at IS NULL
+	// 	ORDER BY cm.created_at ASC
+	// `, postID)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -66,16 +82,19 @@ func GetComments(c *gin.Context) {
 		var cm models.Comment
 		var lastName, avatar sql.NullString
 		var parentID sql.NullInt64
+		var likedInt int
 
 		if err := rows.Scan(
 			&cm.ID, &cm.UUID, &cm.PostID, &cm.UserID, &cm.AuthorName, &lastName, &avatar,
-			&parentID, &cm.CommentText, &cm.LikesCount, &cm.CreatedAt,
+			&parentID, &cm.CommentText, &cm.LikesCount, &cm.CreatedAt, &likedInt,
 		); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Failed to read comments",
 			})
 			return
 		}
+
+		cm.Liked = likedInt != 0
 
 		if lastName.Valid {
 			cm.AuthorName += " " + lastName.String
@@ -381,7 +400,7 @@ func ToggleCommentLike(c *gin.Context) {
 			return
 		}
 
-		if _, err := tx.Exec("UPDATE blog_commens SET likes_count = likes_count + 1 WHERE id = ?", commentID); err != nil {
+		if _, err := tx.Exec("UPDATE blog_comments SET likes_count = likes_count + 1 WHERE id = ?", commentID); err != nil {
 			tx.Rollback()
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Failed to like comment",

@@ -15,6 +15,7 @@ type Comment struct {
 	LikesCount 		uint 			`json:"likes_count"`
 	CreatedAt 		time.Time 		`json:"created_at"`
 	Replies 		[]*Comment 		`json:"replies"`
+	Liked 			bool			`json:"liked"`
 
 }
 
