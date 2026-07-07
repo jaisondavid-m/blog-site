@@ -3,13 +3,13 @@ import { useNavigate } from "react-router-dom"
 import {
     FiUser, FiMail, FiAtSign, FiCalendar, FiEdit2,
     FiShield, FiLoader, FiAlertCircle, FiFileText,
-    FiHeart, FiBookmark, FiTrendingUp, FiChevronRight,FiEye,
+    FiHeart, FiBookmark, FiTrendingUp, FiChevronRight, FiEye,
     FiZap, FiCheckCircle, FiCamera, FiX, FiSave, FiAlertTriangle,
 } from "react-icons/fi"
 import { getMe, updateProfile, uploadAvatar } from "../api/auth.api.js"
 import { useAuth } from "../context/AuthContext.jsx"
 import api from "../api/axios.js"
-import { getMyPostsOverview } from "../api/post.api.js"
+import { getMyPostsOverview, getMyPosts } from "../api/post.api.js"
 
 const initials = (first, last) =>
     `${first?.[0] ?? ""}${last?.[0] ?? ""}`.toUpperCase() || "?"
@@ -108,7 +108,7 @@ function EditProfileModal({ user, onClose, onSaved }) {
             setError("Image must be under 2MB")
             return
         }
-        const allowed = ["image/jpeg","image/png","image/webp"]
+        const allowed = ["image/jpeg", "image/png", "image/webp"]
 
         if (!allowed.includes(file.type)) {
             setError("Only JPG, PNG, or WEBP images allowed")
@@ -146,7 +146,7 @@ function EditProfileModal({ user, onClose, onSaved }) {
                 const res = await uploadAvatar(avatarFile)
                 if (!res.success) { setError(res.error); setSaving(false); return }
             }
-            
+
             const res = await updateProfile(form)
             if (!res.success) {
                 setError(res.error)
@@ -285,6 +285,8 @@ function Profile() {
     const [timeLeft, setTimeLeft] = useState(120)
     const [editOpen, setEditOpen] = useState(false)
     const [overview, setOverview] = useState(null)
+    const [recentPosts, setRecentPosts] = useState([])
+    const [recentLoading, setRecentLoading] = useState(true)
 
     const handleSendOTP = async () => {
 
@@ -369,13 +371,32 @@ function Profile() {
 
     useEffect(() => {
         let cancelled = false
-        ;(async () => {
-            const res = await getMyPostsOverview()
-            if (!cancelled && res.success) {
-                setOverview(res.data.overview)
-            }
-        })()
-    },[])
+            ; (async () => {
+                const res = await getMyPostsOverview()
+                if (!cancelled && res.success) {
+                    setOverview(res.data.overview)
+                }
+            })()
+    }, [])
+
+    useEffect(() => {
+
+        let cancelled = false
+
+            ; (async () => {
+                setRecentLoading(true)
+                const res = await getMyPosts({ page: 1, limit: 3 })
+                if (!cancelled) {
+                    if (res.success) {
+                        setRecentPosts(res.data.posts ?? [])
+                    }
+                    setRecentLoading(false)
+                }
+            })()
+
+        return () => { cancelled = true }
+
+    }, [])
 
     const gradient = avatarGradient(user?.FirstName)
 
@@ -539,25 +560,93 @@ function Profile() {
                                 <StatCard icon={FiEye} label="Total Views" value={overview?.total_views ?? "..."} accent="bg-emerald-500" />
                             </div>
                             <div className="fade-up fade-up-2 bg-white rounded-3xl border border-gray-100 shadow-sm p-7" >
-                                <h3 className="font-['Bricolage_Grotesque'] text-[17px] font-extrabold text-gray-900 mb-5 flex items-center gap-2" >
-                                    <FiZap size={16} className="text-indigo-500" />
-                                    Recent Activity
-                                </h3>
-                                {/* Empty state */}
-                                <div className="flex flex-col items-center justify-center py-10 text-center" >
-                                    <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center mb-4" >
-                                        <FiFileText size={22} className="text-gray-300" />
-                                    </div>
-                                    <p className="text-[14px] font-bold text-gray-400" >No Posts Yet</p>
-                                    <p className="text-[12.5px] text-gray-300 mt-1" >Your published stories will appear here</p>
-                                    <button
-                                        onClick={() => navigate("/write")}
-                                        className="mt-5 flex items-center gap-1.5 px-5 py-2.5 bg-indigo-500 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition"
-                                    >
-                                        Write your first Post
-                                        <FiChevronRight size={14} />
-                                    </button>
+                                <div className="flex items-center justify-between mb-5" >
+                                    <h3 className="font-['Bricolage_Grotesque'] text-[17px] font-extrabold text-gray-900 mb-5 flex items-center gap-2" >
+                                        <FiZap size={16} className="text-indigo-500" />
+                                        Recent Activity
+                                    </h3>
+                                    {
+                                        recentPosts.length > 0 && (
+                                            <button
+                                                onClick={() => navigate("/my-posts")}
+                                                className="text-[12.5px] font-semibold text-indigo-500 hover:text-indigo-700 flex items-center gap-1"
+                                            >
+                                                View all
+                                                <FiChevronRight size={12} />
+                                            </button>
+                                        )
+                                    }
                                 </div>
+
+                                {
+                                    recentLoading ? (
+                                        <div className="flex flex-col gap-3" >
+                                            {[1, 2, 3].map(i => <Skeleton key={i} className="h-14" />)}
+                                        </div>
+                                    ) : recentPosts.length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center py-10 text-center" >
+                                            <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center mb-4" >
+                                                <FiFileText size={22} className="text-gray-300" />
+                                            </div>
+                                            <p className="text-[14px] font-bold text-gray-400" >No Posts Yet</p>
+                                            <p className="text-[12.5px] text-gray-300 mt-1" >Your published stories will appear here</p>
+                                            <button
+                                                onClick={() => navigate("/write")}
+                                                className="mt-5 flex items-center gap-1.5 px-5 py-2.5 bg-indigo-500 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition"
+                                            >
+                                                Write your first Post
+                                                <FiChevronRight size={14} />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col gap-2" >
+                                            {
+                                                recentPosts.map(post => (
+                                                    <div
+                                                        key={post.uuid}
+                                                        onClick={() => navigate(`/post/${post.uuid}`)}
+                                                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors border border-transparent hover:border-gray-100"
+                                                    >
+                                                        <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0" >
+                                                            <FiFileText size={14} className="text-indigo-500" />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0" >
+                                                            <p className="text-[13.5px] font-semibold text-gray-800 truncate" >
+                                                                {post.title}
+                                                            </p>
+                                                            <div className="flex items-center gap-3 mt-0.5 text-[11px] text-gray-400 font-medium" >
+                                                                <span className="flex items-center gap-1" >
+                                                                    <FiHeart size={10} />{post.likes_count ?? 0}
+                                                                </span>
+                                                                <span className="flex items-center gap-1" >
+                                                                    <FiEye size={10} />{post.views_count ?? 0}
+                                                                </span>
+                                                                <span
+                                                                    className={`px-1.5 py-0.5 rounded-full font-bold ${
+                                                                        post.status === "published"
+                                                                        ? "bg-emerald-50 text-emerald-600"
+                                                                        : "bg-amber-50 text-amber-600" 
+                                                                    }`}
+                                                                >
+                                                                    {post.status}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <FiChevronRight size={14} className="text-gray-300 flex-shrink-0" />
+                                                    </div>  
+                                                ))
+                                            }
+                                            <button
+                                                onClick={() => navigate("/my-posts")}
+                                                className="mt-2 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200
+                                                text-gray-600 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50 text-[13px] font-semibold transition"
+                                            >
+                                                Sell all posts
+                                                <FiChevronRight size={13} />
+                                            </button>
+                                        </div>
+                                    )
+                                }
                             </div>
                         </div>
                     </div>
