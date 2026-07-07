@@ -12,8 +12,14 @@ function formatDate(iso) {
     return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" })
 }
 
+function countAllReplies(comment) {
+    if (!comment.replies || comment.replies.length === 0) return 0
+    return comment.replies.reduce((sum, r) => sum + 1 + countAllReplies(r), 0)
+}
+
 function CommentItem({ comment, postUuid, onReply, onDelete, currentUserId, depth = 0 }) {
 
+    const [showReplies, setShowReplies] = useState(false)
     const [showReplyBox, setShowReplyBox] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
     const [editText, setEditText] = useState(comment.comment_text)
@@ -26,6 +32,8 @@ function CommentItem({ comment, postUuid, onReply, onDelete, currentUserId, dept
     const [liked, setLiked] = useState(comment.liked ?? false)
     const [likesCount, setLikesCount] = useState(comment.likes_count ?? 0)
     const [likeBusy, setLikeBusy] = useState(false)
+
+    const totalReplies = countAllReplies(comment)
 
     const isOwner = currentUserId != null && comment.user_id === currentUserId
 
@@ -186,10 +194,9 @@ function CommentItem({ comment, postUuid, onReply, onDelete, currentUserId, dept
                             disabled={likeBusy}
                             aria-label={liked ? "Unlike comment" : "Like comment"}
                             className={`flex items-center gap-1 text-[12px] font-semibold transition-colors
-                                ${
-                                    liked
-                                        ? "text-red-500"
-                                        : "text-gray-500 hover:text-red-500"
+                                ${liked
+                                    ? "text-red-500"
+                                    : "text-gray-500 hover:text-red-500"
                                 }
                             `}
                         >
@@ -219,20 +226,38 @@ function CommentItem({ comment, postUuid, onReply, onDelete, currentUserId, dept
 
                 {
                     comment.replies?.length > 0 && (
-                        <div className="flex flex-col gap-3 mt-3 pl-4 border-l-2 border-gray-100" >
+                        <div className="mt-2" >
                             {
-                                comment.replies.map(r => (
-                                    <CommentItem
-                                        key={r.id}
-                                        comment={r}
-                                        postUuid={postUuid}
-                                        onReply={onReply}
-                                        currentUserId={currentUserId}
-                                        depth={depth + 1}
-                                    />
-                                ))
+                                !showReplies ? (
+                                    <button
+                                        onClick={() => setShowReplies(true)}
+                                        className="flex items-center gap-2 text-[12.5px] font-bold text-indigo-500
+                                        hover:text-indigo-700 ml-1 transition-colors"
+                                    >
+                                        <span className="w-5 h-px bg-indigo-300" />
+                                        View {totalReplies}
+                                    </button>
+                                ) : (
+                                    <>
+                                        <div className="flex flex-col gap-3 mt-3 pl-4 border-l-2 border-gray-100" >
+                                            {
+                                                comment.replies.map(r => (
+                                                    <CommentItem
+                                                        key={r.id}
+                                                        comment={r}
+                                                        postUuid={postUuid}
+                                                        onReply={onReply}
+                                                        currentUserId={currentUserId}
+                                                        depth={depth + 1}
+                                                    />
+                                                ))
+                                            }
+                                        </div>
+                                    </>
+                                )
                             }
                         </div>
+
                     )
                 }
 
