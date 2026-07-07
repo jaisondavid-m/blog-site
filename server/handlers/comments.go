@@ -332,3 +332,110 @@ func DeleteComment(c *gin.Context) {
 	})
 
 }
+
+func ToggleCommentLike(c *gin.Context) {
+
+	userID, _ := helper.GetUserID(c)
+	uuidParam := c.Param("uuid")
+
+	var commentID uint64
+
+	err := config.DB.QueryRow("SELECT id FROM blog_comments WHERE uuid = ? AND deleted_at IS NULL", uuidParam).Scan(&commentID)
+
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Comment not found",
+		})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch comment",
+		})
+		return
+	}
+
+	tx, err := config.DB.Begin()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to toggle like",
+		})
+		return
+	}
+
+	var existingID uint64
+
+	err = tx.QueryRow("SELECT id FROM blog_comment_likes WHERE comment_id = ? AND user_id = ?", commentID, userID).Scan(&existingID)
+
+	var liked bool
+
+	if err == sql.ErrNoRows {
+
+		if _, err := tx.Exec("INSERT INTO blog_comment_likes (comment_id, user_id) VALUES (?, ?)", commentID, userID); err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to like comment",
+			})
+			return
+		}
+
+		if _, err := tx.Exec("UPDATE blog_commens SET likes_count = likes_count + 1 WHERE id = ?", commentID); err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to like comment",
+			})
+			return
+		}
+
+		liked = true
+
+	} else if err != nil {
+
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to toggle like",
+		})
+
+		return
+
+	} else {
+
+		if _, err := tx.Exec("DELETE FROM blog_comment_likes WHERE comment_id = ? AND user_id = ?", commentID, userID); err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to unlike comment",
+			})
+			return
+		}
+
+		if _, err := tx.Exec("UPDATE blog_comments SET likes_count = likes_count - 1 WHERE id = ?", commentID); err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to unlike comment",
+			})
+			return
+		}
+
+		liked = false
+
+	}
+
+	if err := tx.Commit(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to toggle like",
+		})
+		return
+	}
+
+	var likesCount uint
+
+	config.DB.QueryRow("SELECT likes_count FROM blog_comments WHERE id = ?", commentID).Scan(&likesCount)
+
+	c.JSON(http.StatusOK, gin.H{
+		"liked": liked,
+		"likes_count": likesCount,
+	})
+
+}

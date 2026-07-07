@@ -220,3 +220,25 @@ CREATE TABLE blog_posts_views (
     FOREIGN KEY (post_id) REFERENCES blog_posts(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 )
+
+
+CREATE TABLE blog_comment_likes (
+
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    comment_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_comment_like (comment_id, user_id),
+
+    FOREIGN KEY (comment_id)
+        REFERENCES blog_comments(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+
+);
+
+CREATE INDEX idx_comment_likes_commnet ON blog_comment_likes(comment_id);
+CREATE INDEX idx_comment_likes_user ON blog_comment_likes(user_id);

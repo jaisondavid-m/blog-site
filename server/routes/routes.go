@@ -81,6 +81,7 @@ func SetupRoutes(r *gin.Engine) {
 	{
 		comments.PUT("/:uuid", middleware.RequireAuth(), handlers.UpdateComment)
 		comments.DELETE("/:uuid", middleware.RequireAuth(), handlers.DeleteComment)
+		comments.POST("/:uuid/like", middleware.RequireAuth(), handlers.ToggleCommentLike)
 	}
 
 }
