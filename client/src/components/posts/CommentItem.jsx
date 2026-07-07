@@ -1,21 +1,27 @@
 import React, { useState } from "react"
 import { Avatar } from "../Avatar.jsx"
 import CommentInput from "./CommentInput.jsx"
-import { updateComment } from "../../api/post.api.js"
-import { FiEdit2 } from "react-icons/fi"
+import ConfirmDeleteCommentModal from "./ConfirmDeleteCommentModal.jsx"
+import { updateComment, deleteComment } from "../../api/post.api.js"
+import { FiEdit2, FiTrash2 } from "react-icons/fi"
+
+// import ConfirmDeleteCommentModal from "./ConfirmDeleteCommentModal.jsx"
 
 function formatDate(iso) {
     if (!iso) return ""
     return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" })
 }
 
-function CommentItem({ comment, postUuid, onReply, currentUserId, depth = 0 }) {
+function CommentItem({ comment, postUuid, onReply, onDelete, currentUserId, depth = 0 }) {
 
     const [showReplyBox, setShowReplyBox] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
     const [editText, setEditText] = useState(comment.comment_text)
     const [text, setText] = useState(comment.comment_text)
     const [saving, setSaving] = useState(false)
+
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [deleting, setDeleting] = useState(false)
 
     const isOwner = currentUserId != null && comment.user_id === currentUserId
 
@@ -42,6 +48,24 @@ function CommentItem({ comment, postUuid, onReply, currentUserId, depth = 0 }) {
 
     }
 
+    const handleDeleteConfirm = async () => {
+
+        setDeleting(true)
+
+        const res = await deleteComment(comment.uuid)
+
+        setDeleting(false)
+
+        if (!res.success) {
+            setShowDeleteModal(false)
+            return
+        }
+
+        setShowDeleteModal(false)
+        onDelete?.(comment.id)
+
+    }
+
     const [firstName, ...rest] = (comment.author_name ?? "").split(" ")
     const lastName = rest.join(" ")
 
@@ -64,16 +88,24 @@ function CommentItem({ comment, postUuid, onReply, currentUserId, depth = 0 }) {
                             {formatDate(comment.created_at)}
                         </span>
                         {isOwner && !isEditing && (
-                            <button
-                                onClick={() => {
-                                    setEditText(text)
-                                    setIsEditing(true)
-                                }}
-                                className="ml-auto text-gray-300 hover:text-indigo-500"
-                                aria-label="Edit comment"
-                            >
-                                <FiEdit2 size={12} />
-                            </button>
+                            <div className="ml-auto flex items-center gap-2" >
+                                <button
+                                    onClick={() => {
+                                        setEditText(text)
+                                        setIsEditing(true)
+                                    }}
+                                    className="text-gray-300 hover:text-indigo-500"
+                                    aria-label="Edit comment"
+                                >
+                                    <FiEdit2 size={12} />
+                                </button>
+                                <button
+                                    onClick={() => setShowDeleteModal(true)}
+                                    className="text-gray-300 hover:text-red-500"
+                                >
+                                    <FiTrash2 size={12} />
+                                </button>
+                            </div>
                         )}
                     </div>
 
@@ -108,49 +140,59 @@ function CommentItem({ comment, postUuid, onReply, currentUserId, depth = 0 }) {
                                 </div>
                             </div>
                         ) : (
-                            <p className = "text-[13.5px] text-gray-600 leading-relaxed m-0" >
+                            <p className="text-[13.5px] text-gray-600 leading-relaxed m-0" >
                                 {text}
                             </p>
                         )
                     }
 
-            </div>
-
-            {depth < 4 && (
-                <button
-                    onClick={() => setShowReplyBox(p => !p)}
-                    className="text-[12px] font-semibold text-gray-400 hover:text-indigo-500 mt-1.5 ml-1"
-                >
-                    Reply
-                </button>
-            )}
-
-            {showReplyBox && (
-                <div className="mt-2" >
-                    <CommentInput onSubmit={handleReplySubmit} autoFocus="true" />
                 </div>
-            )}
 
-            {
-                comment.replies?.length > 0 && (
-                    <div className="flex flex-col gap-3 mt-3 pl-4 border-l-2 border-gray-100" >
-                        {
-                            comment.replies.map(r => (
-                                <CommentItem
-                                    key={r.id}
-                                    comment={r}
-                                    postUuid={postUuid}
-                                    onReply={onReply}
-                                    currentUserId={currentUserId}
-                                    depth={depth + 1}
-                                />
-                            ))
-                        }
+                {depth < 4 && (
+                    <button
+                        onClick={() => setShowReplyBox(p => !p)}
+                        className="text-[12px] font-semibold text-gray-400 hover:text-indigo-500 mt-1.5 ml-1"
+                    >
+                        Reply
+                    </button>
+                )}
+
+                {showReplyBox && (
+                    <div className="mt-2" >
+                        <CommentInput onSubmit={handleReplySubmit} autoFocus="true" />
                     </div>
-                )
-            }
+                )}
 
-        </div>
+                {
+                    comment.replies?.length > 0 && (
+                        <div className="flex flex-col gap-3 mt-3 pl-4 border-l-2 border-gray-100" >
+                            {
+                                comment.replies.map(r => (
+                                    <CommentItem
+                                        key={r.id}
+                                        comment={r}
+                                        postUuid={postUuid}
+                                        onReply={onReply}
+                                        currentUserId={currentUserId}
+                                        depth={depth + 1}
+                                    />
+                                ))
+                            }
+                        </div>
+                    )
+                }
+
+                <ConfirmDeleteCommentModal
+                    open={showDeleteModal}
+                    title="Delete comment?"
+                    description="This will permanently remove your comment. This can't be undone."
+                    confirmLabel="Delete"
+                    loading={deleting}
+                    onConfirm={handleDeleteConfirm}
+                    onCancel={() => setShowDeleteModal(false)}
+                />
+
+            </div>
         </div >
     )
 
