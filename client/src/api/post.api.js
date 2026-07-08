@@ -276,3 +276,27 @@ export async function toggleCommentLike(commentUuid) {
     }
 
 }
+
+export async function getUserProfile(username) {
+
+    try {
+        const res = await api.get(`/api/users/${username}`)
+        return {
+            success: true,
+            data: res.data,
+        }
+    } catch (err) {
+        if (err.response?.status === 404) {
+            return {
+                success: false,
+                error: "User not found",
+                notFound: true
+            }
+        }
+        return {
+            success: false,
+            error: err.response?.data?.error || "Failed to load profile"
+        }
+    }
+
+}

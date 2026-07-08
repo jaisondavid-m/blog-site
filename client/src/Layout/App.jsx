@@ -12,6 +12,7 @@ import PostPage from "../pages/PostPage.jsx"
 import WritePage from "../pages/WritePage.jsx"
 import BookMarksPage from "../pages/BookMarksPage.jsx"
 import MyPostsPage from "../pages/MyPostsPage.jsx"
+import PublicProfile from "../pages/PublicProfile.jsx"
 
 import PublicRoute from "../components/PublicRoute.jsx"
 import ProtectedRoute from "../components/ProtectedRoute.jsx"
@@ -36,6 +37,7 @@ function App() {
               <Route path='/write' element={<WritePage/>} />
               <Route path='/bookmarks' element={<BookMarksPage/>} />
               <Route path='/profile' element={<Profile />} />
+              <Route path='/u/:username' element={<PublicProfile/>} />
               <Route path='/test' element={<Test />} />
             </Route>
           </Route>
