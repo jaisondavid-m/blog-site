@@ -85,4 +85,9 @@ func SetupRoutes(r *gin.Engine) {
 		comments.POST("/:uuid/like", middleware.RequireAuth(), handlers.ToggleCommentLike)
 	}
 
+	users := r.Group("/api/users")
+	{
+		users.GET("/:username", middleware.RequireAuth(), handlers.GetUserProfile)
+	}
+
 }
