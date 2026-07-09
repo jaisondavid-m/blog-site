@@ -3,6 +3,7 @@ import { AvatarGradient } from "../AvatarGradient.jsx"
 import { Avatar } from "../Avatar.jsx"
 import CommentInput from "./CommentInput.jsx"
 import CommentItem from "./CommentItem.jsx"
+import MentionText from "../MentionText.jsx"
 import { toggleLike as toggleLikeApi, toggleBookmarkApi, getComments, createComment } from "../../api/post.api.js"
 import { FiBookmark, FiHeart, FiMessageCircle, FiMoreHorizontal, FiShare } from "react-icons/fi"
 import { useAuth } from "../../context/AuthContext.jsx"
@@ -167,10 +168,10 @@ function BlogPost({ post, onShare }) {
 
                 {/* Title + excerpt */}
                 <h2 className="font-['Bricolage_Grotesque'] text-[20px] font-extrabold text-gray-900 tracking-tight leading-snug mb-2" >
-                    {post.title}
+                    <MentionText text={post.title} />
                 </h2>
                 <p className="text-[14.5px] text-gray-500 leading-relaxed mb-5" >
-                    {post.excerpt}
+                    <MentionText text={post.excerpt} />
                 </p>
 
                 {/* Action bar */}

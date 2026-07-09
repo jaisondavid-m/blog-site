@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { Avatar } from "../Avatar.jsx"
 import CommentInput from "./CommentInput.jsx"
 import ConfirmDeleteCommentModal from "./ConfirmDeleteCommentModal.jsx"
+import MentionText from "../MentionText.jsx"
 import { updateComment, deleteComment, toggleCommentLike } from "../../api/post.api.js"
 import { FiEdit2, FiTrash2, FiHeart } from "react-icons/fi"
 
@@ -180,7 +181,7 @@ function CommentItem({ comment, postUuid, onReply, onDelete, currentUserId, dept
                             </div>
                         ) : (
                             <p className="text-[13.5px] text-gray-600 leading-relaxed m-0" >
-                                {text}
+                                <MentionText text={text} />
                             </p>
                         )
                     }

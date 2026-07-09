@@ -6,6 +6,7 @@ import { getPost, toggleBookmarkApi, toggleLike as toggleLikeApi, getComments, c
 
 import CommentInput from "../components/posts/CommentInput.jsx"
 import CommentItem from "../components/posts/CommentItem.jsx"
+import MentionText from "../components/MentionText.jsx"
 
 import PostPageSkeleton from "../components/posts/PostPageSkeleton.jsx"
 import StatPill from "../components/posts/StatPill.jsx"
@@ -39,7 +40,7 @@ function PostPage() {
     const [commentSort, setCommentSort] = useState("newest")
 
     const { user } = useAuth()
-    console.log(user.ID)
+    // console.log(user.ID)
 
     useEffect(() => {
 
@@ -166,7 +167,7 @@ function PostPage() {
 
         if (!res.success) return
 
-        setComments(c => c + 1)
+        setCommentsCount(c => c + 1)
 
         const refetch = await getComments(uuid, commentSort)
 
@@ -223,6 +224,19 @@ function PostPage() {
 
     const avatarSrc = post.author_avatar ? `${BASE_URL}${post.author_avatar}` : null
     const coverSrc = post.cover_image ? `${BASE_URL}${post.cover_image}` : null
+
+    const linkifyMentions = (html) =>
+        html.replace(/@([a-zA-Z0-9_]+)/g, (_, username) =>
+            `<a href="/u/${username}" class="mention-link" data-mention="${username}" >@${username}</a>`
+        )
+
+    const handleContentClick = (e) => {
+        const target = e.target.closest(".mention-link")
+        if (target) {
+            e.preventDefault()
+            navigate(`/u/${target.dataset.mention}`)
+        }
+    }
 
     return (
         <>
@@ -333,6 +347,14 @@ function PostPage() {
                     .prose-content img[src=""] {
                         display: none;
                     }
+                    .prose-content .mention-link {
+                        color: #4f46e5;
+                        font-weight: 600;
+                        text-decoration: none;
+                    }
+                    .prose-content .mention-link:hover {
+                        text-decoration: underline;
+                    }
                 `}
             </style>
             <div className="min-h-screen bg-gray-50 font-['Plus_Jakarta_Sans']" >
@@ -408,12 +430,12 @@ function PostPage() {
                         </span>
                     </div>
                     <h1 className="fade-up font-['Bricolage_Grotesque'] text-[32px] leading-tight font-extrabold text-gray-900 tracking-tight mb-4" >
-                        {post.title}
+                        <MentionText text={post.title} />
                     </h1>
 
                     {post.excerpt && (
                         <p className="fade-up text-[17px] text-gray-500 leading-relaxed mb-6 font-medium" >
-                            {post.excerpt}
+                            <MentionText text={post.excerpt} />
                         </p>
                     )}
 
@@ -456,10 +478,13 @@ function PostPage() {
 
                     <div
                         className="fade-up fade-up-2 prose-content"
+                        onClick={handleContentClick}
                         dangerouslySetInnerHTML={{
-                            __html: post.content.replace(
-                                /src="\/uploads\//g,
-                                `src="${BASE_URL}/uploads"`
+                            __html: linkifyMentions(
+                                post.content.replace(
+                                    /src="\/uploads\//g,
+                                    `src="${BASE_URL}/uploads"`
+                                )
                             )
                         }}
                     />
