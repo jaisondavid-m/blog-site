@@ -300,3 +300,22 @@ export async function getUserProfile(username) {
     }
 
 }
+
+export async function getUserPosts(username, limit = 5) {
+
+    try {
+        const res = await api.get(`/api/users/${username}/posts`, {
+            params: { limit }
+        })
+        return {
+            success: true,
+            data: res.data,
+        }
+    } catch (err) {
+        return {
+            success: false,
+            error: err.response?.data?.error || "Failed to load posts",
+        }
+    }
+
+}

@@ -88,6 +88,7 @@ func SetupRoutes(r *gin.Engine) {
 	users := r.Group("/api/users")
 	{
 		users.GET("/:username", middleware.RequireAuth(), handlers.GetUserProfile)
+		users.GET("/:username/posts", middleware.RequireAuth(), handlers.GetUserPosts)
 	}
 
 }

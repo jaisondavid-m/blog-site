@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react"
 import { useParams, useNavigate, Link } from "react-router-dom"
 
-import { getUserProfile } from "../api/post.api.js"
+import { getUserPosts, getUserProfile } from "../api/post.api.js"
 import { useAuth } from "../context/AuthContext.jsx"
 
 import {
     FiAtSign, FiCalendar, FiFileText, FiAlertCircle,
     FiArrowLeft, FiUserX, FiEdit2,
 } from "react-icons/fi"
+
+import PostSection from "../components/PostSection.jsx"
 
 import { AvatarGradient } from "../components/AvatarGradient.jsx"
 import StatCard from "../components/StatCard.jsx"
@@ -45,8 +47,13 @@ function PublicProfile() {
 
     const [profile, setProfile] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [recentPosts, setRecentPosts] = useState([])
+    const [postsLoading, setPostsLoading] = useState(true)
     const [error, setError] = useState(null)
     const [notFound, setNotFound] = useState(false)
+
+    console.log(recentPosts);
+    
 
     useEffect(() => {
 
@@ -81,6 +88,25 @@ function PublicProfile() {
         return () => { cancelled = true }
 
     }, [username, navigate])
+
+    useEffect(() => {
+
+        if (!profile) return 
+
+        let cancelled = false
+
+        setPostsLoading(true)
+
+        getUserPosts(username, 5).then(res => {
+            if (cancelled) return 
+            if (res.success) setRecentPosts(res.data.posts ?? [])
+            console.log(res.data)
+            setPostsLoading(false)
+        })
+
+        return () => { cancelled = true }
+
+    },[profile, username])
 
     const displayName = profile ? `${profile.first_name} ${profile.last_name}` : "-"
     const gradient = AvatarGradient(profile?.first_name)
@@ -146,7 +172,7 @@ function PublicProfile() {
                     <FiArrowLeft size={15} />
                     Back
                 </button>
-                <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden" >
+                <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm overflow-hidden" >
                     <div className={`h-2 w-full bg-gradient-to-r ${gradient}`} />
                     <div className="flex flex-col items-center my-6" >
                         {
@@ -181,10 +207,14 @@ function PublicProfile() {
                         <StatCard
                             icon={FiFileText}
                             label="Posts Published"
-                            value={profile.posts_counts ?? 0}
+                            value={profile.post_count ?? 0}
                             accent="bg-indigo-500"
                         />
                     </div>
+                    <PostSection
+                        postsLoading={postsLoading}
+                        recentPosts={recentPosts}
+                    />
                 </div>
             </div>
         </div>
