@@ -244,3 +244,25 @@ CREATE TABLE blog_comment_likes (
 
 CREATE INDEX idx_comment_likes_commnet ON blog_comment_likes(comment_id);
 CREATE INDEX idx_comment_likes_user ON blog_comment_likes(user_id);
+
+
+CREATE TABLE notifications (
+
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    uuid CHAR(36) NOT NULL UNIQUE,
+    recipient_id BIGINT UNSIGNED NOT NULL,
+    actor_id BIGINT UNSIGNED NOT NULL,
+    type ENUM('mention_post', 'mention_comment') NOT NULL,
+    post_id BIGINT UNSIGNED NULL,
+    comment_id BIGINT UNSIGNED NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (actor_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (post_id) REFERENCES blog_posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (comment_id) REFERENCES blog_comments(id) ON DELETE CASCADE
+
+);
+
+CREATE INDEX idx_notif_recipient ON notifications(recipient_id, is_read)

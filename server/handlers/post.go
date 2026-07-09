@@ -58,6 +58,9 @@ func CreatePost(c *gin.Context) {
 	}
 
 	id, _ := res.LastInsertId()
+	newPostID := uint64(id)
+
+	go NotifyMentions(input.Content, userID, &newPostID, nil, "mention_post")
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message":"Post Created Successfully",
@@ -347,9 +350,11 @@ func UpdatePost(c *gin.Context) {
 	}
 
 	var authorID uint64
+	var postDBID uint64
 	var currentStatus string
-	err := config.DB.QueryRow("SELECT author_id, status FROM blog_posts WHERE uuid = ? AND deleted_at IS NULL", uuidParam).
-		Scan(&authorID, &currentStatus)
+	
+	err := config.DB.QueryRow("SELECT id, author_id, status FROM blog_posts WHERE uuid = ? AND deleted_at IS NULL", uuidParam).
+		Scan(&postDBID, &authorID, &currentStatus)
 
 	if err == sql.ErrNoRows {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -424,6 +429,10 @@ func UpdatePost(c *gin.Context) {
 			"error": "Failed to update post",
 		})
 		return
+	}
+
+	if input.Content != nil {
+		go NotifyMentions(*input.Content, userID, &postDBID, nil, "mention_post")
 	}
 
 	c.JSON(http.StatusOK, gin.H{

@@ -1,18 +1,16 @@
 package handlers
 
 import (
-
-	"strings"
-	"net/http"
 	"database/sql"
+	"net/http"
+	"strings"
 
 	"server/config"
-	"server/models"
 	"server/helper"
+	"server/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-
 )
 
 
@@ -239,6 +237,9 @@ func CreateComment(c *gin.Context) {
 	}
 
 	id, _ := res.LastInsertId()
+	commentID := uint64(id)
+
+	go NotifyMentions(in.CommentText, userID, &postID, &commentID,  "mention_comment")
 
 	c.JSON(http.StatusCreated, gin.H{
 		"id": id,
@@ -261,9 +262,9 @@ func UpdateComment(c *gin.Context) {
 		return 
 	}
 
-	var ownerID uint64
+	var ownerID, postID uint64
 
-	err := config.DB.QueryRow("SELECT user_id FROM blog_comments WHERE uuid = ? AND deleted_at IS NULL", uuidParam).Scan(&ownerID)
+	err := config.DB.QueryRow("SELECT user_id, post_id FROM blog_comments WHERE uuid = ? AND deleted_at IS NULL", uuidParam).Scan(&ownerID, &postID)
 
 	if err == sql.ErrNoRows {
 		c.JSON(http.StatusNotFound, gin.H{
@@ -286,12 +287,25 @@ func UpdateComment(c *gin.Context) {
 		return
 	}
 
+	var commentID uint64
+
+	if err := config.DB.QueryRow(
+		"SELECT id FROM blog_comments WHERE uuid = ? AND deleted_at IS NULL", uuidParam,
+	).Scan(&commentID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch comment",
+		})
+		return	
+	}
+
 	if _, err := config.DB.Exec("UPDATE blog_comments SET comment_text = ? WHERE uuid = ?", in.CommentText, uuidParam); err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Failed to update comment",
 		})
 		return 
 	}
+
+	go NotifyMentions(in.CommentText, userID, &postID, &commentID, "mention_comment")
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Comments updated",

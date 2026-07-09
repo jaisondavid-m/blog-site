@@ -91,4 +91,10 @@ func SetupRoutes(r *gin.Engine) {
 		users.GET("/:username/posts", middleware.RequireAuth(), handlers.GetUserPosts)
 	}
 
+	notifications := r.Group("/api/notifications")
+	{
+		notifications.GET("", middleware.RequireAuth(), handlers.GetNotifications)
+		notifications.POST("/:uuid/read", middleware.RequireAuth(), handlers.MarkNotificationRead)
+	}
+
 }
