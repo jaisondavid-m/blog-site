@@ -95,6 +95,7 @@ func SetupRoutes(r *gin.Engine) {
 	{
 		notifications.GET("", middleware.RequireAuth(), handlers.GetNotifications)
 		notifications.POST("/:uuid/read", middleware.RequireAuth(), handlers.MarkNotificationRead)
+		notifications.GET("/unread-count", middleware.RequireAuth(), handlers.GetUnreadNotificationCount)
 	}
 
 }

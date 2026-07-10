@@ -1,8 +1,9 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Link, useNavigate, useLocation } from "react-router-dom"
-import { FiZap, FiLogOut, FiMenu, FiX } from "react-icons/fi"
+import { FiZap, FiLogOut, FiMenu, FiX, FiBell } from "react-icons/fi"
 import { useAuth } from "../context/AuthContext.jsx"
 import { logoutUser } from "../api/auth.api.js"
+import { getUnreadNotificationCounts } from "../api/notification.api.js"
 
 function NavBar() {
 
@@ -14,7 +15,15 @@ function NavBar() {
     const [mobileOpen, setMobileOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [showLogoutModal, setShowLogoutModal] = useState(false)
+    const [unreadCount, setUnreadCount] = useState(0)
 
+    const fetchUnreadCount = async () => {
+        const res = await getUnreadNotificationCounts()
+        if (res.success) {
+            setUnreadCount(res.data.unread_count)
+        }
+    }
+    
     const handleLogout = async () => {
         try {
 
@@ -38,6 +47,12 @@ function NavBar() {
         { name: "My Posts", path: "/my-posts" },
         { name: "Profile", path: "/profile" },
     ]
+
+    useEffect(() => {
+        fetchUnreadCount()
+        const interval = setInterval(fetchUnreadCount, 10000)
+        return () => clearInterval(interval)
+    },[])
 
     return (
         <>
@@ -74,7 +89,20 @@ function NavBar() {
                             })}
                         </nav>
                         {/* Desktop Logout */}
-                        <div className="hidden md:block">
+                        <div className="hidden md:flex items-center gap-3">
+                            <button
+                                onClick={() => navigate("/notifications")}
+                                className="relative w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition"
+                            >
+                                {unreadCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full
+                                    bg-red-600 text-white text-[10px] flex items-center justify-center px-1" 
+                                    >
+                                        { unreadCount > 99 ? "99+" : unreadCount }
+                                    </span>
+                                )}
+                                <FiBell size={18} />
+                            </button>
                             <button
                                 onClick={() => setShowLogoutModal(true)}
                                 disabled={loading}
@@ -128,6 +156,21 @@ function NavBar() {
                                     </Link>
                                 )
                             })}
+                            <Link
+                                to="/notifications"
+                                onClick={() => setMobileOpen(false)}
+                                className="flex items-center justify-between px-3 py-3 rounded-lg text-sm 
+                                font-medium text-gray-700 hover:bg-gray-50"
+                            >
+                                <span>Notifications</span>
+                                {
+                                    unreadCount > 0 && (
+                                        <span className="bg-red-600 text-white text-xs rounded-full px-2 py-0.5" >
+                                            {unreadCount}
+                                        </span>
+                                    )
+                                }
+                            </Link>
                             <div className="mt-2 pt-4 border-t border-gray-200">
                                 <button
                                     onClick={() => setShowLogoutModal(true)}

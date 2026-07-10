@@ -140,3 +140,27 @@ func MarkNotificationRead(c *gin.Context) {
 	})
 
 }
+
+func GetUnreadNotificationCount(c *gin.Context) {
+
+	userID := c.MustGet("user_id").(uint64)
+
+	var count int
+
+	err := config.DB.QueryRow(
+		`SELECT COUNT(*) FROM notifications WHERE recipient_id = ? AND is_read = FALSE`,
+		userID,
+	).Scan(&count)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch unread count",
+		})
+		return 
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"unread_count": count,
+	})
+
+}
