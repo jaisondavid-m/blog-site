@@ -136,7 +136,7 @@ function Home() {
                             <FiEdit size={14} />
                             Write a Post
                         </button>
-                        <button
+                           <button
                             onClick={() => navigate("/bookmarks")}
                             className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-gray-200
                             hover:border-amber-300 hover:text-amber-600 hover:bg-amber-50 text-gray-600
