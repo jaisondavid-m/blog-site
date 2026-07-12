@@ -30,6 +30,7 @@ function NormalisePost(raw) {
         commentsCount: raw.comments_count ?? 0,
         comments: null,
         author: {
+            id: raw.author_id,
             firstName,
             lastName,
             username: raw.author_name?.toLowerCase().replace(/\s+/g, "") ?? "",

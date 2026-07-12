@@ -238,6 +238,16 @@ function PostPage() {
         }
     }
 
+    const handleDeleteComment = (commentId) => {
+        setComments(prev =>
+            prev?.filter(c => c.id !== commentId).map(c => ({
+                ...c,
+                replies: c.replies?.filter(r => r.id !== commentId) ?? c.replies
+            })) ?? prev
+        )
+        setCommentsCount(c => Math.max(0, c-1))
+    }
+
     return (
         <>
             <style>
@@ -554,7 +564,9 @@ function PostPage() {
                                             comment={c}
                                             postUuid={uuid}
                                             onReply={handleReply}
+                                            onDelete={handleDeleteComment}
                                             currentUserId={user.ID}
+                                            isPostAuthor={post.author_id === user.ID}
                                         />
                                     ))
                                 )

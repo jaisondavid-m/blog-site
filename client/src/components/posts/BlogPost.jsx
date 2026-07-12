@@ -110,6 +110,16 @@ function BlogPost({ post, onShare }) {
 
     }
 
+    const handleDeleteComment = (commentId) => {
+        setComments(prev =>
+            prev?.filter(c => c.id !== commentId).map(c => ({
+                ...c,
+                replies: c.replies?.filter(r => r.id !== commentId) ?? c.replies
+            })) ?? prev
+        )
+        setCommentsCount(c => Math.max(0, c-1))
+    }
+
     useEffect(() => {
 
         if (!showComments) return
@@ -280,7 +290,9 @@ function BlogPost({ post, onShare }) {
                                         comment={c}
                                         postUuid={post.uuid}
                                         onReply={handleReply}
+                                        onDelete={handleDeleteComment}
                                         currentUserId={user.ID}
+                                        isPostAuthor={post.author.id === user.ID}
                                     />
                                     // <div key={c.id} className="flex gap-3">
                                     //     <Avatar

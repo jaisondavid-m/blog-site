@@ -337,7 +337,16 @@ func DeleteComment(c *gin.Context) {
 		return
 	}
 
-	if ownerID != userID {
+	var postAuthorID uint64
+
+	if err := config.DB.QueryRow("SELECT author_id FROM blog_posts WHERE id = ?", postID).Scan(&postAuthorID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch post",
+		})
+		return
+	}
+
+	if ownerID != userID && postAuthorID != userID {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error": "You can only delete your own comments",
 		})

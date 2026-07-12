@@ -18,7 +18,7 @@ function countAllReplies(comment) {
     return comment.replies.reduce((sum, r) => sum + 1 + countAllReplies(r), 0)
 }
 
-function CommentItem({ comment, postUuid, onReply, onDelete, currentUserId, depth = 0 }) {
+function CommentItem({ comment, postUuid, onReply, onDelete, currentUserId, isPostAuthor, depth = 0 }) {
 
     const [showReplies, setShowReplies] = useState(false)
     const [showReplyBox, setShowReplyBox] = useState(false)
@@ -37,6 +37,7 @@ function CommentItem({ comment, postUuid, onReply, onDelete, currentUserId, dept
     const totalReplies = countAllReplies(comment)
 
     const isOwner = currentUserId != null && comment.user_id === currentUserId
+    const canDelete = isOwner || isPostAuthor
 
     const handleReplySubmit = async (text) => {
         await onReply(text, comment.id)
@@ -49,7 +50,7 @@ function CommentItem({ comment, postUuid, onReply, onDelete, currentUserId, dept
             setIsEditing(false)
             return
         }
-        setSaving(false)
+        setSaving(true)
 
         const res = await updateComment(comment.uuid, editText.trim())
         setSaving(false)
@@ -127,24 +128,33 @@ function CommentItem({ comment, postUuid, onReply, onDelete, currentUserId, dept
                         <span className="text-[11px] text-gray-400" >
                             {formatDate(comment.created_at)}
                         </span>
-                        {isOwner && !isEditing && (
+                        {(isOwner || canDelete) && !isEditing && (
                             <div className="ml-auto flex items-center gap-2" >
-                                <button
-                                    onClick={() => {
-                                        setEditText(text)
-                                        setIsEditing(true)
-                                    }}
-                                    className="text-gray-300 hover:text-indigo-500"
-                                    aria-label="Edit comment"
-                                >
-                                    <FiEdit2 size={12} />
-                                </button>
-                                <button
-                                    onClick={() => setShowDeleteModal(true)}
-                                    className="text-gray-300 hover:text-red-500"
-                                >
-                                    <FiTrash2 size={12} />
-                                </button>
+                                {
+                                    isOwner && (
+                                        <button
+                                            onClick={() => {
+                                                setEditText(text)
+                                                setIsEditing(true)
+                                            }}
+                                            className="text-gray-300 hover:text-indigo-500"
+                                            aria-label="Edit comment"
+                                        >
+                                            <FiEdit2 size={12} />
+                                        </button>
+                                    )
+                                }
+                                {
+                                    canDelete && (
+                                        <button
+                                            onClick={() => setShowDeleteModal(true)}
+                                            className="text-gray-300 hover:text-red-500"
+                                            aria-label="Delete comment"
+                                        >
+                                            <FiTrash2 size={12} />
+                                        </button>
+                                    )
+                                }
                             </div>
                         )}
                     </div>
@@ -257,6 +267,7 @@ function CommentItem({ comment, postUuid, onReply, onDelete, currentUserId, dept
                                                         postUuid={postUuid}
                                                         onReply={onReply}
                                                         currentUserId={currentUserId}
+                                                        isPostAuthor={isPostAuthor}
                                                         depth={depth + 1}
                                                     />
                                                 ))
@@ -273,7 +284,11 @@ function CommentItem({ comment, postUuid, onReply, onDelete, currentUserId, dept
                 <ConfirmDeleteCommentModal
                     open={showDeleteModal}
                     title="Delete comment?"
-                    description="This will permanently remove your comment. This can't be undone."
+                    description={
+                        isOwner
+                            ? "This will permanently remove your comment. This can't be undone."
+                            : "This will permanently remove this comment from your post. This can't be undone."
+                    }
                     confirmLabel="Delete"
                     loading={deleting}
                     onConfirm={handleDeleteConfirm}
