@@ -99,4 +99,9 @@ func SetupRoutes(r *gin.Engine) {
 		notifications.GET("/unread-count", middleware.RequireAuth(), handlers.GetUnreadNotificationCount)
 	}
 
+	writers := r.Group("/api/writers")
+	{
+		writers.GET("/trending", middleware.OptionalAuth(), handlers.GetTrendingWriters)
+	}
+
 }
