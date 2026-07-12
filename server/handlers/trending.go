@@ -1,7 +1,6 @@
 package handlers
 
 import (
-
 	"database/sql"
 	"net/http"
 	"strconv"
@@ -11,7 +10,6 @@ import (
 	"server/config"
 	"server/helper"
 	"server/models"
-
 )
 
 func GetTrendingPosts(c *gin.Context) {
@@ -32,7 +30,7 @@ func GetTrendingPosts(c *gin.Context) {
 		days = 7
 	}
 
-	offset := (page-1)*limit
+	offset := (page - 1) * limit
 	userID, authed := helper.GetUserID(c)
 
 	args := []any{}
@@ -41,7 +39,7 @@ func GetTrendingPosts(c *gin.Context) {
 		SELECT
 			p.id, p.uuid, p.author_id, u.first_name, u.last_name, u.avatar_url,
 			p.title, p.excerpt, p.tag, p.cover_image, p.views_count, 
-			p.likes_count, p.comment_count, p.published_at, p.created_at
+			p.likes_count, p.comments_count, p.published_at, p.created_at,
 	`
 
 	if authed {
@@ -55,7 +53,7 @@ func GetTrendingPosts(c *gin.Context) {
 	}
 
 	query += `,
-			(p.likes_count * 3 + p.comment_count * 2 + p.views_count) AS trend_score
+			(p.likes_count * 3 + p.comments_count * 2 + p.views_count) AS trend_score
 		FROM blog_posts p
 		JOIN users u ON u.id = p.author_id
 		WHERE p.status = 'published'
@@ -100,11 +98,13 @@ func GetTrendingPosts(c *gin.Context) {
 		}
 
 		if lastName.Valid {
-			p.AuthorAvatar = avatar.String
-			p.Excerpt = excerpt.String
-			p.Tag = tagVal.String
-			p.CoverImage = cover.String
+			p.AuthorName += " " + lastName.String
 		}
+
+		p.AuthorAvatar = avatar.String
+		p.Excerpt = excerpt.String
+		p.Tag = tagVal.String
+		p.CoverImage = cover.String
 
 		if publishedAt.Valid {
 			p.PublishedAt = &publishedAt.Time
@@ -116,9 +116,9 @@ func GetTrendingPosts(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"posts": posts,
-		"page": page,
+		"page":  page,
 		"limit": limit,
-		"days": days,
+		"days":  days,
 	})
 
 }
