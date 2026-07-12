@@ -3,8 +3,11 @@ import { FiBell } from "react-icons/fi"
 import { NOTIF_META } from "./Notif_meta.js"
 import { Avatar } from "../Avatar.jsx"
 import TimeAgo from "../../utils/TimeAgo.js"
+import { useNavigate } from "react-router-dom"
 
 function NotificationRow({ n, onOpen }) {
+
+    const navigate = useNavigate()
 
     const meta = NOTIF_META[n.type] || {
         icon: FiBell,
@@ -14,10 +17,16 @@ function NotificationRow({ n, onOpen }) {
 
     const Icon = meta.icon
 
+    const handleUsernameClick = (e) => {
+        e.stopPropagation()
+        navigate(`/u/${n.actor_username}`)
+    }
+
     return (
-        <button
+        <div
             onClick={() => onOpen(n)}
-            className={`w-full flex text-left items-start gap-3 px-5 py-4 rounded-2xl border transition-all duration-150
+            role="button"
+            className={`w-full flex text-left items-start gap-3 px-5 py-4 rounded-2xl border transition-all duration-150 cursor-pointer
                     ${
                         n.is_read
                             ? "bg-white border-gray-100 hover:border-gray-200"
@@ -41,7 +50,10 @@ function NotificationRow({ n, onOpen }) {
             </div>
             <div className="flex-1 min-w-0" >
                 <p className="text-[13.5px] text-gray-700 leading-snug" >
-                    <span className="font-bold text-gray-900" >
+                    <span
+                        onClick={handleUsernameClick}
+                        className="font-bold text-gray-900 hover:underline"
+                    >
                         @{n.actor_username}
                     </span>
                     {" "}{meta.text}
@@ -54,7 +66,7 @@ function NotificationRow({ n, onOpen }) {
             {!n.is_read && (
                 <span className="w-2 h-2 rounded-full bg-indigo-500 mt-2 flex-shrink-0" />
             )}
-        </button>
+        </div>
     )
 
 }

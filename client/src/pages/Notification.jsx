@@ -56,6 +56,8 @@ function NotificationsPage() {
 
         }
 
+        navigate(`/post/${n.post_uuid}`)
+
     }
 
     const unreadCount = notifications.filter(n => !n.is_read).length
