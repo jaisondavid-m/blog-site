@@ -49,13 +49,17 @@ function Footer() {
                         <h4 className="text-[11.5px] font-bold tracking-widest uppercase text-gray-400 mb-3.5">
                             Explore
                         </h4>
-                        {["Home","Trending","Topics","Writers"].map((item) => (
+                        {[
+                            { label: "Home" , path: "/home" },
+                            { label: "Trending Writers", path: "/writers/trending" },
+                            { label: "Trending Posts", path: "/post/trending" },
+                        ].map(({label, path}) => (
                             <Link
-                                key={item}
-                                to={`/${item.toLowerCase()}`}
+                                key={label}
+                                to={path}
                                 className="block text-[13.5px] text-gray-700 hover:text-indigo-600 mb-2 transition-colors"
                             >
-                                {item}
+                                {label}
                             </Link>
                         ))}
                     </div>
