@@ -319,3 +319,21 @@ export async function getUserPosts(username, limit = 5) {
     }
 
 }
+
+export async function getTrendingPosts({ page = 1, limit = 10, days = 7 } = {}) {
+
+    try {
+        const params = { page, limit, days }
+        const res = await api.get("/api/posts/trending",{ params })
+        return {
+            success: true,
+            data: res.data,
+        }
+    } catch (err) {
+        return {
+            success: false,
+            error: err.response?.data?.error || "Failed to fetch trending posts",
+        }
+    }
+
+}
