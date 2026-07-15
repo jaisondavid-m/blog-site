@@ -25,4 +25,5 @@ type User struct {
 	PasswordHash 	string
 	AvatarURL 		string
 	IsGuest			bool
+	Role 			string
 }

@@ -21,6 +21,9 @@ import PublicRoute from "../components/PublicRoute.jsx"
 import ProtectedRoute from "../components/ProtectedRoute.jsx"
 import MainLayout from "../Layout/MainLayout.jsx"
 
+import Admin from "../pages/Admin.jsx"
+import AdminRoute from "../components/route/AdminRoute.jsx"
+
 function App() {
   return (
     <AuthProvider>
@@ -45,6 +48,12 @@ function App() {
               <Route path='/recover' element={<AccountRecovery/>} />
               <Route path='/u/:username' element={<PublicProfile/>} />
               <Route path='/test' element={<Test />} />
+            </Route>
+          </Route>
+
+          <Route element={<AdminRoute/>} >
+            <Route element={<MainLayout/>} >
+              <Route path='/admin/users' element={<Admin/>} />
             </Route>
           </Route>
 
