@@ -104,4 +104,10 @@ func SetupRoutes(r *gin.Engine) {
 		writers.GET("/trending", middleware.OptionalAuth(), handlers.GetTrendingWriters)
 	}
 
+	admin := r.Group("/api/admin")
+	admin.Use(middleware.RequireAuth(), middleware.RequireAdmin())
+	{
+		admin.GET("/users", handlers.GetUsers)
+	}
+
 }
