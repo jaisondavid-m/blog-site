@@ -108,6 +108,10 @@ func SetupRoutes(r *gin.Engine) {
 	admin.Use(middleware.RequireAuth(), middleware.RequireAdmin())
 	{
 		admin.GET("/users", handlers.GetUsers)
+		admin.POST("users/:uuid/suspend", handlers.SuspendUser)
+		admin.POST("/users/:uuid/unsuspend", handlers.Unsuspend)
+		admin.POST("/users/:uuid/ban", handlers.BanUser)
+		admin.POST("/users/:uuid/unban", handlers.UnbanUser)
 	}
 
 }

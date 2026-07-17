@@ -130,3 +130,78 @@ func GetUsers(c *gin.Context) {
 	})
 
 }
+
+func SuspendUser(c *gin.Context) {
+	updateAccountStatus(c, "suspended")
+}
+
+func Unsuspend(c *gin.Context) {
+	updateAccountStatus(c, "active")
+}
+
+func BanUser(c *gin.Context) {
+	updateAccountStatus(c, "banned")
+}
+
+func UnbanUser(c *gin.Context) {
+	updateAccountStatus(c, "active")
+}
+
+func DeleteUser(c *gin.Context) {
+
+	uuidParam := c.Param("uuid")
+	adminID := c.MustGet("user_id").(uint64)
+
+	var targetID uint64
+	var targetRole string
+
+	err := config.DB.QueryRow(
+		"SELECT id, role FROM users WHERE uuid = ? AND deleted_at IS NULL",
+		uuidParam,
+	).Scan(&targetID, &targetRole)
+
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "User not found",
+		})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch user",
+		})
+		return
+	}
+
+	if targetID == adminID {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "You cannot delete your own account",
+		})
+		return
+	}
+
+	if targetRole == "admin" {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "Cannot delete another admin",
+		})
+		return
+	}
+
+	_, err = config.DB.Exec(
+		"UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?",
+		targetID,
+	)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"message": "Failed to delete user",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "User deleted successfully",
+	})
+
+}
