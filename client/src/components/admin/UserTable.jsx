@@ -8,7 +8,10 @@ import {
 import { Avatar } from "../Avatar.jsx"
 import StatusBadge from "./StatusBadge.jsx"
 
-function UserTable({ loading, users }){
+import { suspendUser, unsuspendUser, banUser } from "../../api/admin.api.js"
+import ConfirmModal from "./ConfirmModal.jsx"
+
+function UserTable({ loading, users, setConfirmAction }){
 
     return (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden" >
@@ -79,7 +82,7 @@ function UserTable({ loading, users }){
                                                         {
                                                             u.account_status === "suspended" ? (
                                                                 <button
-                                                                    // onClick={() => }
+                                                                    onClick={() => setConfirmAction({ type: "unsuspend", user: u }) }
                                                                     className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-emerald-300
                                                                     hover:text-emerald-600 hover:bg-emerald-50 transition"
                                                                     title="Unsuspend"
@@ -88,7 +91,7 @@ function UserTable({ loading, users }){
                                                                 </button>
                                                             ) : u.account_status === "active" && (
                                                                 <button
-                                                                    // onClick={() => }
+                                                                    onClick={() => setConfirmAction({ type: "suspend", user: u }) }
                                                                     className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-amber-300 
                                                                     hover:text-amber-600 hover:bg-amber-50 transition"
                                                                     title="suspend"
@@ -100,16 +103,16 @@ function UserTable({ loading, users }){
                                                         {
                                                             u.account_status === "banned" ? (
                                                                 <button
-                                                                    // onClick={() => }
+                                                                    onClick={() => setConfirmAction({ type: "unban", user: u }) }
                                                                     className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-emarld-300
-                                                                    hover:text-emerald-600 hover:bg-emarald-50 transition"
+                                                                    hover:text-emerald-600 hover:bg-emerald-50 transition"
                                                                     title="Unban"
                                                                 >
                                                                     <FiUserCheck size={14} />
                                                                 </button>
                                                             ) : (
                                                                 <button
-                                                                    // onClick={() => }
+                                                                    onClick={() => setConfirmAction({ type: "ban", user: u }) }
                                                                     className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-red-300
                                                                     hover:text-red-600 hover:bg-red-50 transition"
                                                                     title="Ban"
@@ -120,7 +123,7 @@ function UserTable({ loading, users }){
                                                         }
 
                                                         <button
-                                                            // onClick={() => }
+                                                            onClick={() => setConfirmAction({ type: "delete", user: u }) }
                                                                 className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-red-300
                                                                 hover:text-red-600 hover:bg-red-50 transition"
                                                                 title="Delete"

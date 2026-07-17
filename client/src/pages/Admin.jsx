@@ -3,7 +3,13 @@ import React, { useCallback, useEffect, useState } from "react"
 import Filters from "../components/admin/Filters.jsx"
 import UserTable from "../components/admin/UserTable.jsx"
 
-import { getAdminUsers } from "../api/admin.api"
+import {
+    getAdminUsers, suspendUser, unsuspendUser,
+    banUser, unbanUser, deleteUser,
+} from "../api/admin.api"
+
+import ConfirmModal from "../components/admin/ConfirmModal.jsx"
+
 import { FiAlertCircle, FiRefreshCw, FiShield } from "react-icons/fi"
 
 function Admin() {
@@ -57,6 +63,78 @@ function Admin() {
         fetchUsers(p)
     }
 
+    const runAction = async () => {
+
+        if (!confirmAction) return 
+
+        const { type, user } = confirmAction
+
+        setActionLoading(true)
+
+        const actionMap = {
+            suspend: suspendUser,
+            unsuspend: unsuspendUser,
+            ban: banUser,
+            unban: unbanUser,
+            delete: deleteUser,
+        }
+
+        const res = await actionMap[type](user.uuid)
+
+        setActionLoading(false)
+
+        if (!res.success) {
+            setError(res.error)
+            setConfirmAction(null)
+            return
+        }
+
+        setConfirmAction(null)
+
+        if (type === "delete") {
+            setUsers(prev => prev.filter(u => u.uuid !== user.uuid))
+        } else {
+            const newStatus = type === "suspend" ? "suspended" : type === "ban" ? "banned" : "active"
+            setUsers(prev =>
+                prev.map(u => u.uuid === user.uuid ? { ...u, account_status: newStatus } : u )
+            )
+        }
+
+    }
+
+    const actionCopy = {
+        suspend: {
+            title: "Suspend user?",
+            label: "Suspend",
+            danger: false,
+            msg: (u) => `${u.username} will be temporarily blocked from signing in.`,
+        },
+        unsuspend: {
+            title: "Reactivate user?",
+            label: "Reactivate",
+            danger: false,
+            msg: (u) => `${u.username}'s account will be set back to active.`,
+        },
+        ban: {
+            title: "Ban user?",
+            label: "Ban",
+            danger: true,
+            msg: (u) => `${u.username} will be permanently banned. This can be reversed later.`,
+        },
+        unban: {
+            title: "Unban user?",
+            label: "Unban",
+            danger: false,
+            msg: (u) => `${u.username}'s account will be restored to active.`
+        },
+        delete: {
+            title: "Delete user?",
+            label: "Delete",
+            danger: true,
+            msg: (u) => `${u.username}'s account will be soft-deleted. This cannot be undone from this page.`
+        }
+    }
+
     return (
         <div className="min-h-screen bg-gray-50 font-['Plus_Jakarta_Sans']" >
             <div className="max-w-6xl mx-auto px-5 lg:px-8 py-10" >
@@ -104,9 +182,25 @@ function Admin() {
                 <UserTable
                     loading={loading}
                     users={users}
+                    setConfirmAction={setConfirmAction}
                 />
 
             </div>
+
+            {
+                confirmAction && (
+                    <ConfirmModal
+                        title={actionCopy[confirmAction.type].title}
+                        message={actionCopy[confirmAction.type].msg(confirmAction.user)}
+                        confirmLabel={actionCopy[confirmAction.type].label}
+                        danger={actionCopy[confirmAction.type].danger}
+                        loading={actionLoading}
+                        onConfirm={runAction}
+                        onCancel={() => setConfirmAction(null)}
+                    />
+                )
+            }
+
         </div>
     )
 
