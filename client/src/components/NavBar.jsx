@@ -7,7 +7,7 @@ import { getUnreadNotificationCounts } from "../api/notification.api.js"
 
 function NavBar() {
 
-    const { setUser } = useAuth()
+    const { user, setUser } = useAuth()
 
     const navigate = useNavigate()
     const location = useLocation()
@@ -46,6 +46,9 @@ function NavBar() {
         { name: "Home", path: "/home" },
         { name: "My Posts", path: "/my-posts" },
         { name: "Profile", path: "/profile" },
+        ...(user?.Role === "admin" ? [
+            { name: "Users", path: "/admin/users" }
+        ] : [])
     ]
 
     useEffect(() => {
