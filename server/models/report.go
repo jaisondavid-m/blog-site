@@ -11,7 +11,7 @@ type PostReport struct {
 	ID 				uint64 		`json:"id"`
 	UUID 			string 		`json:"uuid"`
 	PostID 			uint64 		`json:"post_id"`
-	PostUUID 		uint64 		`json:"post_uuid"`
+	PostUUID 		string 		`json:"post_uuid"`
 	PostTitle 		string 		`json:"post_title"`
 	ReporterID 		uint64 		`json:"reporter_id"`
 	ReporterName 	string 		`json:"reporter_name"`
