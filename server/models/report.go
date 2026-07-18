@@ -8,5 +8,15 @@ type ReportPostInput struct {
 }
 
 type PostReport struct {
-	
+	ID 				uint64 		`json:"id"`
+	UUID 			string 		`json:"uuid"`
+	PostID 			uint64 		`json:"post_id"`
+	PostUUID 		uint64 		`json:"post_uuid"`
+	PostTitle 		string 		`json:"post_title"`
+	ReporterID 		uint64 		`json:"reporter_id"`
+	ReporterName 	string 		`json:"reporter_name"`
+	Reason 			string 		`json:"reason"`
+	Description 	string 		`json:"description"`
+	Status 			string 		`json:"status"`
+	Created 		time.Time 	`json:"created_at"`
 }
