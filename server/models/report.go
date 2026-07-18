@@ -18,5 +18,5 @@ type PostReport struct {
 	Reason 			string 		`json:"reason"`
 	Description 	string 		`json:"description"`
 	Status 			string 		`json:"status"`
-	Created 		time.Time 	`json:"created_at"`
+	CreatedAt 		time.Time 	`json:"created_at"`
 }

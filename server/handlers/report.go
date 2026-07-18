@@ -2,9 +2,9 @@ package handlers
 
 import (
 
-	// "strconv"
-	"net/http"
+	"strconv"
 	"database/sql"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -12,7 +12,6 @@ import (
 	"server/config"
 	"server/helper"
 	"server/models"
-
 )
 
 var validReportReasons = map[string]bool{
@@ -101,6 +100,90 @@ func ReportPost(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Post reported successfully",
 		"uuid": reportUUID,
+	})
+
+}
+
+func GetReports(c *gin.Context) {
+
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	status := c.DefaultQuery("status", "pending")
+
+	if page < 1 {
+		page = 1
+	}
+
+	if limit < 1 || limit > 50 {
+		limit = 20
+	}
+
+	offset := (page - 1) * limit
+
+	args := []any{}
+
+	query := `
+		SELECT
+			r.id, r.uuid, r.post_id, p.uuid, p.title,
+			r.reporter_id, u.first_name, u.last_name,
+			r.reason, r.description, r.status, r.created_at
+		FROM blog_post_reports r
+		JOIN blog_posts p ON p.id = r.post_id
+		JOIN users u ON u.id = r.reporter_id
+		WHERE 1 = 1
+	`
+
+	if status != "" && status != "all" {
+		query += " AND r.status = ?"
+		args = append(args, status)
+	}
+
+	query += " ORDER BY r.created_at DESC LIMIT ? OFFSET ?"
+	args = append(args, limit, offset)
+
+	rows, err := config.DB.Query(query, args...)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch reports",
+		})
+		return
+	}
+
+	defer rows.Close()
+
+	reports := []models.PostReport{}
+
+	for rows.Next() {
+
+		var r models.PostReport
+		var lastName, description sql.NullString
+
+		if err := rows.Scan(
+			&r.ID, &r.UUID, &r.PostID, &r.PostUUID, &r.PostTitle,
+			&r.ReporterID, &r.ReporterName, &lastName,
+			&r.Reason, &description, &r.Status, &r.CreatedAt,
+		); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to read reports",
+			})
+			return
+		}
+
+		if lastName.Valid {
+			r.ReporterName += " " + lastName.String
+		}
+
+		r.Description = description.String
+
+		reports = append(reports, r)
+
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"reports": reports,
+		"page": page,
+		"limit": limit,
 	})
 
 }
