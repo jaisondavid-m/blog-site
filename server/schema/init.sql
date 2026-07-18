@@ -266,3 +266,37 @@ CREATE TABLE notifications (
 );
 
 CREATE INDEX idx_notif_recipient ON notifications(recipient_id, is_read)
+
+CREATE TABLE blog_post_reports (
+
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    uuid CHAR(36) NOT NULL UNIQUE,
+    post_id BIGINT UNSIGNED NOT NULL,
+    reporter_id BIGINT UNSIGNED NOT NULL,
+    reason ENUM(
+        'span',
+        'harassment',
+        'hate_speech',
+        'misinformation'
+    ) NOT NULL,
+    description TEXT,
+    status ENUM(
+        'pending',
+        'reviewed',
+        'dismissed'
+    ) DEFAULT 'pending',
+    reviewed_by BIGINT UNSIGNED NULL,
+    reviewed_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE KEY uq_report_post_reporter (post_id, reporter_id),
+
+    FOREIGN KEY (post_id) REFERENCES blog_posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (reporter_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL
+
+);
+
+CREATE INDEX idx_report_post ON blog_post_reports(post_id);
+CREATE INDEX idx_report_status ON blog_post_reports(status);
+CREATE INDEX idx_report_reporter ON blog_post_reports(reporter_id);
