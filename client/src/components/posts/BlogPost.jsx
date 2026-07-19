@@ -5,9 +5,11 @@ import CommentInput from "./CommentInput.jsx"
 import CommentItem from "./CommentItem.jsx"
 import MentionText from "../MentionText.jsx"
 import { toggleLike as toggleLikeApi, toggleBookmarkApi, getComments, createComment } from "../../api/post.api.js"
-import { FiBookmark, FiHeart, FiMessageCircle, FiMoreHorizontal, FiShare } from "react-icons/fi"
+import { FiBookmark, FiHeart, FiMessageCircle, FiMoreHorizontal, FiShare, FiFlag } from "react-icons/fi"
 import { useAuth } from "../../context/AuthContext.jsx"
 import { useNavigate } from "react-router-dom"
+
+import ReportPostModal from "./ReportPostModal.jsx"
 
 function BlogPost({ post, onShare }) {
 
@@ -22,7 +24,11 @@ function BlogPost({ post, onShare }) {
     const [saved, setSaved] = useState(post.isBookmarked ?? false)
     const [commentSort, setCommentSort] = useState("newest")
 
+    const [showMenu, setShowMenu] = useState(false)
+    const [showReportModal, setShowReportModal] = useState(false)
+
     const { user } = useAuth()
+    const isOwnPost = user?.ID === post.author.id
 
     const goToPost = () => {
         navigate(`/post/${post.uuid}`)
@@ -104,7 +110,7 @@ function BlogPost({ post, onShare }) {
     const handleReply = async (text, parentCommentId) => {
 
         const res = await createComment(post.uuid, text, parentCommentId)
-        if (!res.success) return 
+        if (!res.success) return
         setCommentsCount(c => c + 1)
         await loadComments()
 
@@ -117,7 +123,7 @@ function BlogPost({ post, onShare }) {
                 replies: c.replies?.filter(r => r.id !== commentId) ?? c.replies
             })) ?? prev
         )
-        setCommentsCount(c => Math.max(0, c-1))
+        setCommentsCount(c => Math.max(0, c - 1))
     }
 
     useEffect(() => {
@@ -170,9 +176,45 @@ function BlogPost({ post, onShare }) {
                         >
                             {post.tag}
                         </span>
-                        <button onClick={(e) => e.stopPropagation()} >
-                            <FiMoreHorizontal size={15} />
-                        </button>
+                        <div className="relative" >
+                            <button
+                                onClick={stop(() => setShowMenu(p => !p))}
+                                aria-label="More options"
+                                className="text-gray-400 hover:text-gray-700"
+                            >
+                                <FiMoreHorizontal size={15} />
+                            </button>
+                            {showMenu && (
+                                <>
+                                    <div
+                                        className="fixed inset-0 z-10"
+                                        onClick={stop(() => setShowMenu(false))}
+                                    />
+                                    <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-100 rounded-xl shadow-lg z-20 py-1" >
+                                        {
+                                            !isOwnPost && (
+                                                <button
+                                                    onClick={stop(() => {
+                                                        setShowMenu(false)
+                                                        setShowReportModal(true)
+                                                    })}
+                                                    className="w-full flex items-center gap-2 px-3 py-2 text-[13px] font-medium 
+                                                    text-rose-500 hover:bg-rose-50"
+                                                >
+                                                    <FiFlag size={13} />
+                                                    Report post
+                                                </button>
+                                            )
+                                        }
+                                        {isOwnPost && (
+                                            <p className="px-3 py-2 text-[12px] text-gray-400" >
+                                                No actions available
+                                            </p>
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -323,7 +365,11 @@ function BlogPost({ post, onShare }) {
                     </div>
                 )}
             </div>
-
+            <ReportPostModal
+                open={showReportModal}
+                postUuid={post.uuid}
+                onClose={() => setShowReportModal(false)}
+            />
         </article>
     )
 

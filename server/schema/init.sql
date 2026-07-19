@@ -297,6 +297,8 @@ CREATE TABLE blog_post_reports (
 
 );
 
+UPDATE blog_post_reports SET reason = 'spam' WHERE reason = 'span' AND id > 0;
+
 CREATE INDEX idx_report_post ON blog_post_reports(post_id);
 CREATE INDEX idx_report_status ON blog_post_reports(status);
 CREATE INDEX idx_report_reporter ON blog_post_reports(reporter_id);

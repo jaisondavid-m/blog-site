@@ -11,6 +11,9 @@ import MentionText from "../components/MentionText.jsx"
 import PostPageSkeleton from "../components/posts/PostPageSkeleton.jsx"
 import StatPill from "../components/posts/StatPill.jsx"
 
+import { FiFlag } from "react-icons/fi"
+import ReportPostModal from "../components/posts/ReportPostModal.jsx"
+
 import {
     FiArrowLeft, FiHeart, FiMessageCircle, FiShare,
     FiEye, FiLoader, FiAlertCircle, FiCalendar, FiClock,
@@ -38,6 +41,7 @@ function PostPage() {
     const [commentsCount, setCommentsCount] = useState(0)
     // const [currentUserId, setCurrentUserId] = useState(null)
     const [commentSort, setCommentSort] = useState("newest")
+    const [showReportModal, setShowReportModal] = useState(false)
 
     const { user } = useAuth()
     // console.log(user.ID)
@@ -428,6 +432,17 @@ function PostPage() {
                                     }}
                                 />
                             </button>
+                            {post.author_id !== user.ID && (
+                                <button
+                                    onClick={() => setShowReportModal(true)}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[13px] font-semibold bg-gray-50
+                                    text-gray-500 border border-gray-100 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-100
+                                    transition-all duration-150 active:scale-95"
+                                >
+                                    <FiFlag size={13} />
+                                    Report
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -574,6 +589,11 @@ function PostPage() {
                         </div>
                     </div>
                 </article>
+                <ReportPostModal
+                    open={showReportModal}
+                    postUuid={post.uuid}
+                    onClose={() => setShowReportModal(false)}
+                />
             </div>
         </>
     )
