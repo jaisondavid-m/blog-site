@@ -16,6 +16,7 @@ import PublicProfile from "../pages/PublicProfile.jsx"
 import NotificationsPage from "../pages/Notification.jsx"
 import AccountRecovery from '../pages/AccountRecovery.jsx'
 import TrendingWritersPage from "../pages/TrendingWritersPage.jsx"
+import Reports from "../pages/Reports.jsx"
 
 import PublicRoute from "../components/PublicRoute.jsx"
 import ProtectedRoute from "../components/ProtectedRoute.jsx"
@@ -42,6 +43,7 @@ function App() {
               <Route path='/post/:uuid' element={<PostPage/>} />
               <Route path='/write' element={<WritePage/>} />
               <Route path='/bookmarks' element={<BookMarksPage/>} />
+              <Route path='/reports' element={<Reports/>} />
               <Route path='/profile' element={<Profile />} />
               <Route path='/writers/trending' element={<TrendingWritersPage/>} />
               <Route path='/notifications' element={<NotificationsPage/>} />

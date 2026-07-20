@@ -106,3 +106,38 @@ export async function deleteUser(uuid) {
     }
 
 }
+
+export async function getReports({ page = 1, limit = 20, status = "pending" } = {}) {
+    try {
+
+        const params = { page, limit }
+        if (status) params.status = status
+
+        const res = await api.get("/api/admin/reports", { params })
+        return {
+            success: true,
+            data: res.data,
+        }
+
+    } catch (err) {
+        return {
+            success: false,
+            error: err.response?.data?.error || "Failed to fetch reports",
+        }
+    }
+}
+
+export async function adminDeletePost(uuid) {
+    try {
+        const res = await api.delete(`/api/admin/posts/${uuid}`)
+        return {
+            success: true,
+            data: res.data,
+        }
+    } catch (err) {
+        return {
+            success: false,
+            error: err.response?.data?.error || "Failed to delete post"
+        }
+    }
+}
