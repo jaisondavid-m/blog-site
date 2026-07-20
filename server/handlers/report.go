@@ -187,3 +187,69 @@ func GetReports(c *gin.Context) {
 	})
 
 }
+
+func AdminDeletePost(c *gin.Context) {
+
+	adminID := c.MustGet("user_id").(uint64)
+	uuidParam := c.Param("uuid")
+
+	var postID uint64
+
+	err := config.DB.QueryRow(
+		"SELECT id FROM blog_posts WHERE uuid = ? AND deleted_at IS NULL",uuidParam,
+	).Scan(&postID)
+
+	if err == sql.ErrNoRows {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Post not found",
+		})
+		return
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to fetch post",
+		})
+		return
+	}
+
+	tx, err := config.DB.Begin()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete post",
+		})
+		return
+	}
+
+	if _, err := tx.Exec("UPDATE blog_posts SET deleted_at = NOW() WHERE id = ?", postID); err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete post",
+		})
+		return
+	}
+
+	if _, err := tx.Exec(
+		"UPDATE blog_post_reports SET status = 'reviewed', reviewed_by = ?, reviewed_at = NOW() WHERE post_id = ? AND status = 'pending'",
+		adminID, postID,
+	); err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete post",
+		})
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to delete post",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Post deleted",
+	})
+
+}

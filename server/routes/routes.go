@@ -115,6 +115,7 @@ func SetupRoutes(r *gin.Engine) {
 		admin.POST("/users/:uuid/unban", handlers.UnbanUser)
 		admin.DELETE("/users/:uuid", handlers.DeleteUser)
 		admin.GET("/reports", handlers.GetReports)
+		admin.DELETE("/posts/:uuid", handlers.AdminDeletePost)
 	}
 
 }
