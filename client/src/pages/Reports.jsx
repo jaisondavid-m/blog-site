@@ -4,6 +4,7 @@ import {
 } from "react-icons/fi"
 
 import ReportsTable from "../components/admin/ReportsTable"
+import ReportDetailModal from "../components/admin/ReportDetailsModal.jsx"
 
 import { getReports } from "../api/admin.api"
 
@@ -134,6 +135,13 @@ function Reports() {
                     </button>
                 </div>
             </div>
+
+            <ReportDetailModal
+                report={selectedReport}
+                onClose={() => setSelectedReport(null)}
+                onDeleted={handleDelete}
+            />
+
         </div>
     )
 

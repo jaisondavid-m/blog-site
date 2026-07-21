@@ -64,7 +64,7 @@ function ReportsTable({ loading, reports, onSelect }) {
                             <tr
                                 key={r.uuid}
                                 onClick={() => onSelect(r)}
-                                className="border-b border-gray-50 last:border-0 hover:bg-indigo-50/40 cursor-pointer transition"
+                                className="bo   rder-b border-gray-50 last:border-0 hover:bg-indigo-50/40 cursor-pointer transition"
                             >
                                 <td className="px-5 py-3.5 font-semibold text-gray-800 max-w-xs truncate" >
                                     {r.post_title}
