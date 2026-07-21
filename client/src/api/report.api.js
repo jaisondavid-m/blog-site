@@ -31,3 +31,20 @@ export async function reportPost(uuid, reason, description = "") {
     }
 
 }
+
+export async function dismissReport(uuid) {
+
+    try {
+        const res = await api.post(`/api/admin/reports/${uuid}/dismiss`)
+        return {
+            success: true,
+            data: res.data,
+        }
+    } catch (err) {
+        return {
+            success: false,
+            error: err.response?.data?.error || "Failed to dismiss report"
+        }
+    }
+
+}

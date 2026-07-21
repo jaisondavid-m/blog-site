@@ -3,9 +3,10 @@ import { getPost } from "../../api/post.api.js"
 import {
     FiX, FiLoader, FiAlertCircle,
     FiTrash2, FiExternalLink,
-    FiTrash,
+    FiTrash, FiCheck
 } from "react-icons/fi"
 import { adminDeletePost } from "../../api/admin.api.js"
+import { dismissReport } from "../../api/report.api.js"
 
 const reasonLabels = {
     spam: "Spam",
@@ -17,17 +18,18 @@ const reasonLabels = {
     other: "Other",
 }
 
-function ReportDetailModal({ report, onClose, onDeleted  }) {
+function ReportDetailModal({ report, onClose, onDeleted, onDismissed }) {
 
     const [post, setPost] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [deleting, setDeleting] = useState(false)
     const [confirmingDelete, setConfirmingDelete] = useState(false)
+    const [dismissing, setDismissing] = useState(false)
 
     useEffect(() => {
 
-        if (!report) return 
+        if (!report) return
 
         let cancelled = false
 
@@ -38,7 +40,7 @@ function ReportDetailModal({ report, onClose, onDeleted  }) {
 
         getPost(report.post_uuid).then(res => {
 
-            if (cancelled) return 
+            if (cancelled) return
             setLoading(false)
 
             if (!res.success) {
@@ -52,7 +54,7 @@ function ReportDetailModal({ report, onClose, onDeleted  }) {
 
         return () => { cancelled = true }
 
-    },[report])
+    }, [report])
 
     if (!report) return null
 
@@ -68,10 +70,29 @@ function ReportDetailModal({ report, onClose, onDeleted  }) {
             setError(res.error)
             return
         }
-        
+
         onDeleted(report)
 
     }
+
+    const handleDismiss = async () => {
+
+        setDismissing(true)
+
+        const res = await dismissReport(report.uuid)
+
+        setDismissing(false)
+
+        if (!res.success) {
+            setError(res.error)
+            return
+        }
+
+        onDismissed(report)
+
+    }
+
+    const canModerate = report.status === "pending"
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justity-center bg-black/40 px-4" >
@@ -160,13 +181,22 @@ function ReportDetailModal({ report, onClose, onDeleted  }) {
                     </div>
 
                     <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-2" >
-                        <button
-                            // onClick={}
-                            className="px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-600
-                            bg-white border border-gray-gray-200 hover:bg-gray-50 transition"
-                        >
-                            Dismiss report
-                        </button>
+                        {canModerate && (
+                            <button
+                                onClick={handleDismiss}
+                                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-600
+                            bg-white border border-gray-gray-200 hover:bg-gray-50 transition disabled:opacity-50"
+                            >
+                                {
+                                    dismissing ? (
+                                        <FiLoader size={14} className="animate-spin" />
+                                    ) : (
+                                        <FiCheck size={14} />
+                                    )
+                                }
+                                Dismiss report
+                            </button>
+                        )}
                         {!confirmingDelete ? (
                             <button
                                 onClick={() => setConfirmingDelete(true)}

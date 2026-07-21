@@ -53,13 +53,20 @@ function Reports() {
         setSelectedReport(null)
     }
 
+    const handleDismiss = (report) => {
+        setReports(prev => prev.filter(r => r.uuid !== report.uuid))
+        setSelectedReport(null)
+    }
+
     return (
-        <div className="min-h-screen bg-gray-50 font-['Plus_Jakarta_Sans']" >
-            <div className="max-w-5xl mx-auto px-5 lg:px-8 py-10" >
-                <div className="flex items-center justify-between mb-6 " >
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 font-['Plus_Jakarta_Sans']" >
+            <div className="max-w-6xl mx-auto px-5 lg:px-8 py-10" >
+                <div className="flex items-center justify-between mb-8">
                     <div>
                         <div className="flex items-center gap-2 mb-1" >
-                            <FiFlag size={18} className="text-indigo-500" />
+                            <div className="p-2 rounded-xl bg-indigo-100" >
+                                <FiFlag size={18} className="text-indigo-500" />
+                            </div>
                             <h1 className="font-['Bricolage_Grotesque'] text-2xl font-extrabold text-gray-900 tracking-tight" >
                                 Reported Posts
                             </h1>
@@ -140,6 +147,7 @@ function Reports() {
                 report={selectedReport}
                 onClose={() => setSelectedReport(null)}
                 onDeleted={handleDelete}
+                onDismissed={handleDismiss}
             />
 
         </div>
