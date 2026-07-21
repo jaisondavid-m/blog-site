@@ -116,6 +116,7 @@ func SetupRoutes(r *gin.Engine) {
 		admin.DELETE("/users/:uuid", handlers.DeleteUser)
 		admin.GET("/reports", handlers.GetReports)
 		admin.DELETE("/posts/:uuid", handlers.AdminDeletePost)
+		admin.POST("/reports/:uuid/dismiss", handlers.DismissReport)
 	}
 
 }

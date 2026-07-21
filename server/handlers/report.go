@@ -253,3 +253,33 @@ func AdminDeletePost(c *gin.Context) {
 	})
 
 }
+
+func DismissReport(c *gin.Context) {
+
+	adminID := c.MustGet("user_id").(uint64)
+	uuidParam := c.Param("uuid")
+
+	res, err := config.DB.Exec(
+		"UPDATE blog_post_reports SET status = 'dismissed', reviewed_by = ?, reviewed_at = NOW() WHERE uuid = ? AND status = 'pending'",
+		adminID, uuidParam,
+	)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to dismiss report",
+		})
+		return
+	}
+
+	if n, _ := res.RowsAffected(); n == 0 {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Report not found or already reviewed",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Report dismissed",
+	})
+
+}
