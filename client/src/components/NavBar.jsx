@@ -47,7 +47,8 @@ function NavBar() {
         { name: "My Posts", path: "/my-posts" },
         { name: "Profile", path: "/profile" },
         ...(user?.Role === "admin" ? [
-            { name: "Users", path: "/admin/users" }
+            { name: "Reports", path: "/reports" },
+            { name: "Users", path: "/admin/users" },
         ] : [])
     ]
 
