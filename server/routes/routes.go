@@ -1,7 +1,9 @@
 package routes
 
 import (
+
 	"net/http"
+	"time"
 	// "database/sql"
 
 	"github.com/gin-gonic/gin"
@@ -9,6 +11,7 @@ import (
 	"server/config"
 	"server/handlers"
 	"server/middleware"
+
 )
 
 func SetupRoutes(r *gin.Engine) {
@@ -39,12 +42,12 @@ func SetupRoutes(r *gin.Engine) {
 
 	auth := r.Group("/api/auth")
 	{
-		auth.POST("/register",handlers.Register)
-		auth.POST("/login",handlers.Login)
-		auth.POST("/guest", handlers.GuestLogin)
+		auth.POST("/register", middleware.RateLimit("register",5,time.Hour) ,handlers.Register)
+		auth.POST("/login", middleware.RateLimit("login",10, time.Minute) , handlers.Login)
+		auth.POST("/guest", middleware.RateLimit("guest", 20, time.Minute) ,  handlers.GuestLogin)
 		auth.POST("/logout",handlers.Logout)
 		auth.GET("/me",middleware.RequireAuth(), handlers.Me)
-		auth.GET("/send-verification-otp",middleware.RequireAuth(),handlers.SendVerificationOTP)
+		auth.GET("/send-verification-otp",middleware.RequireAuth(), middleware.RateLimit("otp", 3, 10*time.Minute) ,handlers.SendVerificationOTP)
 		auth.POST("/verify-email",middleware.RequireAuth(),handlers.VerifyEmail)
 		auth.GET("/email-verification-status",middleware.RequireAuth(),handlers.EmailVerificationStatus)
 		auth.PUT("/profile",middleware.RequireAuth(),handlers.UpdateProfile)
@@ -53,15 +56,15 @@ func SetupRoutes(r *gin.Engine) {
 
 	fp := auth.Group("/forgot-password")
 	{
-		fp.POST("/find-account",handlers.FindAccount)
-		fp.POST("/send-otp",handlers.SendPasswordResetOTP)
-		fp.POST("/verify-otp",handlers.VerifyPasswordResetOTP)
-		fp.POST("/reset",handlers.ResetPassword)
+		fp.POST("/find-account", middleware.RateLimit("fp-find",5, time.Hour) ,handlers.FindAccount)
+		fp.POST("/send-otp", middleware.RateLimit("fp-otp", 3, 10*time.Minute) ,handlers.SendPasswordResetOTP)
+		fp.POST("/verify-otp", middleware.RateLimit("fp-verify", 5, 10*time.Minute) ,handlers.VerifyPasswordResetOTP)
+		fp.POST("/reset", middleware.RateLimit("fp-reset", 5, time.Hour) ,handlers.ResetPassword)
 	}
 
 	posts := r.Group("/api/posts")
 	{
-		posts.POST("", middleware.RequireAuth(), handlers.CreatePost)
+		posts.POST("", middleware.RequireAuth(), middleware.RateLimit("create-post", 10, time.Minute) , handlers.CreatePost)
 		posts.GET("",middleware.RequireAuth(), handlers.GetPosts)
 		posts.GET("/trending", middleware.OptionalAuth(), handlers.GetTrendingPosts)
 		posts.GET("/bookmarks", middleware.RequireAuth(), handlers.GetBookmarks)

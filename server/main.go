@@ -15,6 +15,7 @@ import (
 func main() {
 
 	config.ConnectDB()
+	config.ConnectRedis()
 
 	r := gin.Default()
 
