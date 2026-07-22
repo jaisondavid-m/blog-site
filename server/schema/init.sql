@@ -297,7 +297,17 @@ CREATE TABLE blog_post_reports (
 
 );
 
-UPDATE blog_post_reports SET reason = 'spam' WHERE reason = 'span' AND id > 0;
+-- UPDATE blog_post_reports SET reason = 'spam' WHERE reason = 'span' AND id > 0;
+ALTER TABLE blog_post_reports
+MODIFY COLUMN reason ENUM(
+    'spam',
+    'harassment',
+    'hate_speech',
+    'misinformation',
+    'nudity',
+    'violence',
+    'other'
+) NOT NULL;
 
 CREATE INDEX idx_report_post ON blog_post_reports(post_id);
 CREATE INDEX idx_report_status ON blog_post_reports(status);
