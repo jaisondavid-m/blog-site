@@ -103,7 +103,7 @@ function WritePage() {
                 navigate(`/post/${editUuid}`)
             }
         } else if (submitStatus === "published") {
-            navigate(`/posts/${res.data.uuid}`)
+            navigate(`/post/${res.data.uuid}`)
         } else {
             showToast("Draft saved!", "success")
         }
