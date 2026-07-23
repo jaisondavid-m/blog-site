@@ -1,7 +1,6 @@
 package handlers
 
 import (
-
 	"fmt"
 	"os"
 	"path/filepath"
@@ -9,6 +8,7 @@ import (
 
 	"database/sql"
 	"net/http"
+	"server/cache"
 	"server/config"
 
 	"github.com/gin-gonic/gin"
@@ -38,6 +38,9 @@ func UpdateProfile(c *gin.Context) {
 		return
 	}
 
+	var oldUsername string
+	config.DB.QueryRow("SELECT username FROM users WHERE id = ?", userID).Scan(&oldUsername)
+
 	var existingID uint64
 	err := config.DB.QueryRow(
 		"SELECT id FROM users WHERE username = ? AND id != ?",
@@ -62,6 +65,8 @@ func UpdateProfile(c *gin.Context) {
 		})
 		return
 	}
+
+	cache.Delete("profile:"+oldUsername, "profile:"+input.Username)
 
 	c.JSON(http.StatusOK,gin.H{
 		"message":"Profile Updated Successfully",

@@ -20,7 +20,7 @@ func ConnectRedis() {
 		Password: os.Getenv("REDIS_PASSWORD"),
 	})
 
-	if err := RDB.Ping(Ctx).Err(); err != redis.Nil {
+	if err := RDB.Ping(Ctx).Err(); err != nil {
 		log.Fatalf("Failed to connect to redis: %v", err)
 	}
 

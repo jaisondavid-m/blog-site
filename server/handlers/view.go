@@ -5,9 +5,11 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
+	"server/cache"
 	"server/config"
 	"server/models"
 )
@@ -23,55 +25,68 @@ func GetUserProfile(c *gin.Context) {
 		return
 	}
 
-	var profile models.PublicProfile
-	var accountStatus string
+	cacheKey := "profile:" + username
 
-	err := config.DB.QueryRow(
-		`SELECT id, uuid, first_name, last_name, username, avatar_url, created_at, account_status
+	var profile models.PublicProfile
+
+	if cached, ok := cache.Get[models.PublicProfile](cacheKey); ok {
+		profile = cached
+	} else {
+
+		var accountStatus string
+
+		err := config.DB.QueryRow(
+			`SELECT id, uuid, first_name, last_name, username, avatar_url, created_at, account_status
 		FROM users
 		WHERE username = ? AND deleted_at IS NULL`,
-		username,
-	).Scan(
-		&profile.ID,
-		&profile.UUID,
-		&profile.FirstName,
-		&profile.LastName,
-		&profile.Username,
-		&profile.AvatarURL,
-		&profile.CreatedAt,
-		&accountStatus,
-	)
+			username,
+		).Scan(
+			&profile.ID,
+			&profile.UUID,
+			&profile.FirstName,
+			&profile.LastName,
+			&profile.Username,
+			&profile.AvatarURL,
+			&profile.CreatedAt,
+			&accountStatus,
+		)
 
-	if err == sql.ErrNoRows {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "User not found",
-		})
-		return
-	}
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "User not found",
+			})
+			return
+		}
 
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to fetch profile",
-		})
-		return
-	}
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to fetch profile",
+			})
+			return
+		}
 
-	if accountStatus != "active" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "User not found",
-		})
-		return
-	}
+		if accountStatus != "active" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "User not found",
+			})
+			return
+		}
 
-	err = config.DB.QueryRow(
-		`SELECT COUNT(*) FROM blog_posts
+		err = config.DB.QueryRow(
+			`SELECT COUNT(*) FROM blog_posts
 		WHERE author_id = ? AND status = 'published' AND deleted_at IS NULL`,
-		profile.ID,
-	).Scan(&profile.PostsCount)
+			profile.ID,
+		).Scan(&profile.PostsCount)
 
-	if err != nil {
-		profile.PostsCount = 0
+		if err != nil {
+			profile.PostsCount = 0
+		}
+
+		cache.Set(cacheKey, profile, 2*time.Minute)
+
 	}
+
+	profile.IsOwner = false
 
 	if uid, exists := c.Get("user_id"); exists {
 		if requestID, ok := uid.(uint64); ok && requestID == profile.ID {
@@ -176,7 +191,7 @@ func GetUserPosts(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-			"posts": posts,
+		"posts": posts,
 	})
 
 }

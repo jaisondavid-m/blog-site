@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	
 	"fmt"
 	"strconv"
 	"strings"
@@ -14,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	"server/cache"
 	"server/config"
 	"server/helper"
 	"server/models"
@@ -27,7 +27,7 @@ func CreatePost(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error":"Title and content are required",
+			"error": "Title and content are required",
 		})
 		return
 	}
@@ -46,13 +46,13 @@ func CreatePost(c *gin.Context) {
 	res, err := config.DB.Exec(`
 		INSERT INTO blog_posts (uuid, author_id, title, excerpt, content, tag, cover_image, status, published_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-		`,postUUID, userID, input.Title, input.Excerpt, input.Content, input.Tag, input.CoverImage, status, publishedAt,
+		`, postUUID, userID, input.Title, input.Excerpt, input.Content, input.Tag, input.CoverImage, status, publishedAt,
 	)
 
 	if err != nil {
 		println(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":"Failed to create post",
+			"error": "Failed to create post",
 		})
 		return
 	}
@@ -63,9 +63,9 @@ func CreatePost(c *gin.Context) {
 	go NotifyMentions(input.Content, userID, &newPostID, nil, "mention_post")
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message":"Post Created Successfully",
-		"id":id,
-		"uuid":postUUID,
+		"message": "Post Created Successfully",
+		"id":      id,
+		"uuid":    postUUID,
 	})
 
 }
@@ -84,71 +84,206 @@ func GetPosts(c *gin.Context) {
 	tag := c.Query("tag")
 	userID, authed := helper.GetUserID(c)
 
-	args := []any{}
-	query := `
+	cacheKey := fmt.Sprintf("posts:list:page=%d:limit=%d:tag=%s", page, limit, tag)
+
+	var posts []models.Post
+
+	if cached, ok := cache.Get[[]models.Post](cacheKey); ok {
+		posts = cached
+	} else {
+		args := []any{}
+		query := `
 		SELECT
 			p.id, p.uuid, p.author_id, u.first_name, u.last_name, u.avatar_url,
 			p.title, p.excerpt, p.tag, p.cover_image, p.views_count,
 			p.likes_count, p.comments_count, p.published_at, p.created_at,
 	`
 
-	if authed {
-		query += `
+		if authed {
+			query += `
 			EXISTS(SELECT 1 FROM blog_likes b1 WHERE b1.post_id = p.id AND b1.user_id = ?) AS is_liked,
 			EXISTS(SELECT 1 FROM blog_bookmarks b2 WHERE b2.post_id = p.id AND b2.user_id = ?) AS is_bookmarked
 		`
-		args = append(args, userID, userID)
-	} else {
-		query += `0 AS is_liked, 0 AS is_bookmarked`
-	}
+			args = append(args, userID, userID)
+		} else {
+			query += `0 AS is_liked, 0 AS is_bookmarked`
+		}
 
-	query += `
+		query += `
 		FROM blog_posts p
 		JOIN users u on u.id = p.author_id
 		WHERE p.status = 'published' AND p.deleted_at IS NULL
 	`
 
-	if tag != "" {
-		query += " AND p.tag = ?"
-		args = append(args, tag)
+		if tag != "" {
+			query += " AND p.tag = ?"
+			args = append(args, tag)
+		}
+
+		// query += "ORDER BY p.published_at DESC LIMIT ? OFFSET ?"
+		query += " ORDER BY p.published_at DESC LIMIT ? OFFSET ?"
+		args = append(args, limit, offset)
+
+		fmt.Println(query)
+		fmt.Println(args)
+		rows, err := config.DB.Query(query, args...)
+
+		if err != nil {
+			println(err.Error())
+			c.JSON(http.StatusInternalServerError, gin.H{
+				// "error":"Failed to fetch posts",
+				"error": err.Error(),
+				"query": query,
+			})
+			return
+		}
+
+		defer rows.Close()
+
+		posts := []models.Post{}
+
+		for rows.Next() {
+
+			var p models.Post
+			var lastName, avatar, excerpt, tagVal, cover sql.NullString
+			var publishedAt sql.NullTime
+
+			if err := rows.Scan(
+				&p.ID, &p.UUID, &p.AuthorID, &p.AuthorName, &lastName, &avatar,
+				&p.Title, &excerpt, &tagVal, &cover, &p.ViewsCount,
+				&p.LikesCount, &p.CommentCount, &publishedAt, &p.CreatedAt,
+				&p.IsLiked, &p.IsBookmarked,
+			); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"error": "Failed to read posts",
+				})
+				return
+			}
+
+			if lastName.Valid {
+				p.AuthorName += " " + lastName.String
+			}
+
+			p.AuthorAvatar = avatar.String
+			p.Excerpt = excerpt.String
+			p.Tag = tagVal.String
+			p.CoverImage = cover.String
+
+			if publishedAt.Valid {
+				p.PublishedAt = &publishedAt.Time
+			}
+
+			posts = append(posts, p)
+
+		}
+
+		cache.Set(cacheKey, posts, 45*time.Second)
+
 	}
 
-	// query += "ORDER BY p.published_at DESC LIMIT ? OFFSET ?"
-	query += " ORDER BY p.published_at DESC LIMIT ? OFFSET ?"
-	args = append(args, limit, offset)
+	if authed && len(posts) > 0 {
 
-	fmt.Println(query)
-	fmt.Println(args)
-	rows, err := config.DB.Query(query, args...)
+		ids := make([]any, len(posts))
+		placeholders := make([]string, len(posts))
 
-	if err != nil {
-		println(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			// "error":"Failed to fetch posts",
-			"error":err.Error(),
-			"query":query,
-		})
-		return
+		for i, p := range posts {
+			ids[i] = p.ID
+			placeholders[i] = "?"
+		}
+
+		inClause := strings.Join(placeholders, ",")
+
+		likedArgs := append([]any{userID}, ids...)
+
+		likedRows, err := config.DB.Query(
+			"SELECT post_id FROM blog_likes WHERE user_id = ? AND post_id IN ("+inClause+")",
+			likedArgs...,
+		)
+
+		liked := map[uint64]bool{}
+
+		if err == nil {
+			for likedRows.Next() {
+				var id uint64
+				likedRows.Scan(&id)
+				liked[id] = true
+			}
+			likedRows.Close()
+		}
+
+		bookmarkedArgs := append([]any{userID}, ids...)
+
+		bookmarkedRows, err := config.DB.Query(
+			"SELECT post_id FROM blog_bookmarks WHERE user_id = ? AND post_id IN ("+inClause+")",
+			bookmarkedArgs...,
+		)
+
+		bookmarked := map[uint64]bool{}
+
+		if err == nil {
+			for bookmarkedRows.Next() {
+				var id uint64
+				bookmarkedRows.Scan(&id)
+				bookmarked[id] = true
+			}
+			bookmarkedRows.Close()
+		}
+
+		for i := range posts {
+			posts[i].IsLiked = liked[posts[i].ID]
+			posts[i].IsBookmarked = bookmarked[posts[i].ID]
+		}
+
 	}
 
-	defer rows.Close()
+	c.JSON(http.StatusOK, gin.H{
+		"posts": posts,
+		"page":  page,
+		"limit": limit,
+	})
 
-	posts := []models.Post{}
+}
 
-	for rows.Next() {
+func GetPost(c *gin.Context) {
 
-		var p models.Post
-		var lastName, avatar, excerpt, tagVal, cover sql.NullString
+	uuidParam := c.Param("uuid")
+	userID, authed := helper.GetUserID(c)
+	cacheKey := "post:" + uuidParam
+
+	var p models.Post
+
+	if cached, ok := cache.Get[models.Post](cacheKey); ok {
+		p = cached
+	} else {
+
+		var lastName, avatar, excerpt, tag, cover sql.NullString
 		var publishedAt sql.NullTime
 
-		if err := rows.Scan(
+		err := config.DB.QueryRow(`
+			SELECT
+				p.id, p.uuid, p.author_id, u.first_name, u.last_name, u.avatar_url,
+				p.title, p.excerpt, p.content, p.tag, p.cover_image, p.status,
+				p.views_count, p.likes_count, p.comments_count, p.published_at, p.created_at,
+			FROM blog_posts p
+			JOIN users u ON u.id = p.author_id
+			WHERE p.uuid = ? AND p.deleted_at IS NULL
+			`, uuidParam,
+		).Scan(
 			&p.ID, &p.UUID, &p.AuthorID, &p.AuthorName, &lastName, &avatar,
-			&p.Title, &excerpt, &tagVal, &cover, &p.ViewsCount,
-			&p.LikesCount, &p.CommentCount, &publishedAt, &p.CreatedAt,
-			&p.IsLiked, &p.IsBookmarked,
-		); err != nil {
+			&p.Title, &excerpt, &p.Content, &tag, &cover, &p.Status,
+			&p.ViewsCount, &p.LikesCount, &p.CommentCount, &publishedAt, &p.CreatedAt,
+		)
+
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "Post not found",
+			})
+			return
+		}
+
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error":"Failed to read posts",
+				"error": "Failed to fetch post",
 			})
 			return
 		}
@@ -159,83 +294,19 @@ func GetPosts(c *gin.Context) {
 
 		p.AuthorAvatar = avatar.String
 		p.Excerpt = excerpt.String
-		p.Tag = tagVal.String
+		p.Tag = tag.String
 		p.CoverImage = cover.String
 
 		if publishedAt.Valid {
 			p.PublishedAt = &publishedAt.Time
 		}
 
-		posts = append(posts, p)
+		if p.Status == "published" {
+			cache.Set(cacheKey, p, 5*time.Minute)
+		}
 
 	}
 
-
-	c.JSON(http.StatusOK, gin.H{
-		"posts":posts,
-		"page": page,
-		"limit": limit,
-	})
-
-}
-
-func GetPost(c *gin.Context) {
-
-	uuidParam := c.Param("uuid")
-	userID, authed := helper.GetUserID(c)
-
-	args := []any{}
-
-	query := `
-		SELECT
-			p.id, p.uuid, p.author_id, u.first_name, u.last_name, u.avatar_url,
-			p.title, p.excerpt, p.content, p.tag, p.cover_image, p.status,
-			p.views_count, p.likes_count, p.comments_count, p.published_at, p.created_at,
-	`
-
-	if authed {
-		query += `
-			EXISTS(SELECT 1 FROM blog_likes b1 WHERE b1.post_id = p.id AND b1.user_id = ?) AS is_liked,
-			EXISTS(SELECT 1 FROM blog_bookmarks b2 WHERE b2.post_id = p.id AND b2.user_id = ?) AS is_bookmarked
-		`
-		args = append(args, userID, userID)
-	} else {
-		query += `0 AS is_liked, 0 AS is_bookmarked`
-	}
-
-	query += `
-		FROM blog_posts p
-		JOIN users u ON u.id = p.author_id
-		WHERE p.uuid = ? AND p.deleted_at IS NULL
-	`
-
-	args = append(args, uuidParam)
-
-	var p models.Post
-	var lastName, avatar, excerpt, tag, cover sql.NullString
-	var publishedAt sql.NullTime
-
-	err := config.DB.QueryRow(query, args...).Scan(
-		&p.ID, &p.UUID, &p.AuthorID, &p.AuthorName, &lastName, &avatar,
-		&p.Title, &excerpt, &p.Content, &tag, &cover, &p.Status,
-		&p.ViewsCount, &p.LikesCount, &p.CommentCount, &publishedAt, &p.CreatedAt,
-		&p.IsLiked, &p.IsBookmarked,
-	)
-
-	if err == sql.ErrNoRows {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "Post not found",
-		})
-		return
-	}
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to fetch post",
-		})
-		return
-	}
-	
 	if p.Status != "published" && p.AuthorID != userID {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "Post not found",
@@ -243,24 +314,35 @@ func GetPost(c *gin.Context) {
 		return
 	}
 
-	if lastName.Valid {
-		p.AuthorName += " " + lastName.String
+	if authed {
+		config.DB.QueryRow(
+			`SELECT
+				EXISTS(SELECT 1 FROM blog_likes b1 WHERE b1.post_id = p.id AND b1.user_id = ?) AS is_liked,
+				EXISTS(SELECT 1 FROM blog_bookmarks b2 WHERE b2.post_id = p.id AND b2.user_id = ?) AS is_bookmarked`,
+			p.ID, userID, p.ID, userID,
+		).Scan(&p.IsLiked, &p.IsBookmarked)
+	} else {
+		// query += `0 AS is_liked, 0 AS is_bookmarked`
+		p.IsLiked = false
+		p.IsBookmarked = false
 	}
-
-	p.AuthorAvatar = avatar.String
-	p.Excerpt = excerpt.String
-	p.Tag = tag.String
-	p.CoverImage = cover.String
-
-	if publishedAt.Valid {
-		p.PublishedAt = &publishedAt.Time
-	}
-
-	// go config.DB.Exec("UPDATE blog_posts SET views_count = views_count + 1 WHERE id = ?",p.ID)
-	// p.ViewsCount ++
 
 	postID := p.ID
 	ip := c.ClientIP()
+
+	// query += `
+
+	// `
+
+	// args = append(args, uuidParam)
+
+	// err := config.DB.QueryRow(query, args...).Scan(
+
+	// 	&p.IsLiked, &p.IsBookmarked,
+	// )
+
+	// go config.DB.Exec("UPDATE blog_posts SET views_count = views_count + 1 WHERE id = ?",p.ID)
+	// p.ViewsCount ++
 
 	go func() {
 		if authed {
@@ -280,7 +362,7 @@ func GetPost(c *gin.Context) {
 				postID, ip,
 			)
 			if err != nil {
-				return 
+				return
 			}
 			if rows, _ := res.RowsAffected(); rows > 0 {
 				config.DB.Exec("UPDATE blog_posts SET views_count = views_count + 1 WHERE id = ?", p.ID)
@@ -294,7 +376,7 @@ func GetPost(c *gin.Context) {
 
 }
 
-func  DeletePost(c *gin.Context) {
+func DeletePost(c *gin.Context) {
 
 	userID, _ := helper.GetUserID(c)
 	uuidParam := c.Param("uuid")
@@ -330,6 +412,8 @@ func  DeletePost(c *gin.Context) {
 		return
 	}
 
+	cache.Delete("post:" + uuidParam)
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Post deleted",
 	})
@@ -352,7 +436,7 @@ func UpdatePost(c *gin.Context) {
 	var authorID uint64
 	var postDBID uint64
 	var currentStatus string
-	
+
 	err := config.DB.QueryRow("SELECT id, author_id, status FROM blog_posts WHERE uuid = ? AND deleted_at IS NULL", uuidParam).
 		Scan(&postDBID, &authorID, &currentStatus)
 
@@ -434,6 +518,8 @@ func UpdatePost(c *gin.Context) {
 	if input.Content != nil {
 		go NotifyMentions(*input.Content, userID, &postDBID, nil, "mention_post")
 	}
+
+	cache.Delete("post:" + uuidParam)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Post Updated",

@@ -1,14 +1,14 @@
 package handlers
 
 import (
-
-	"strconv"
 	"database/sql"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	"server/cache"
 	"server/config"
 	"server/helper"
 	"server/models"
@@ -247,6 +247,8 @@ func AdminDeletePost(c *gin.Context) {
 		})
 		return
 	}
+
+	cache.Delete("post:" + uuidParam)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Post deleted",
