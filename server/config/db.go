@@ -20,7 +20,7 @@ func ConnectDB() {
 	err := godotenv.Load()
 
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal("No .env file found, using environment variables")
 	}
 
 	user := os.Getenv("DB_USER")
