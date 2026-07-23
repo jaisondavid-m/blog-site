@@ -19,7 +19,8 @@ WORKDIR /app
 
 COPY --from=builder /app/server ./server
 
-COPY uploads ./uploads
+# COPY uploads ./uploads
+RUN mkdir -p uploads
 
 EXPOSE 8080
 
