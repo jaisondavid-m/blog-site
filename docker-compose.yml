@@ -86,8 +86,8 @@ services:
     mem_limit: 100m
     build:
       context: ./client
-      args:
-        VITE_API_URL: ""
+      # args:
+      #   VITE_API_URL: ""
     container_name: blog_web
     restart: unless-stopped
     depends_on:
