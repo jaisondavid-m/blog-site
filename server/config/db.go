@@ -17,11 +17,11 @@ var DB *sql.DB
 
 func ConnectDB() {
 
-	err := godotenv.Load()
+	// err := godotenv.Load()
 
-	if err != nil {
-		log.Fatal("No .env file found, using environment variables")
-	}
+	// if err != nil {
+	// 	log.Println("No .env file found, using environment variables")
+	// }
 
 	user := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASSWORD")
