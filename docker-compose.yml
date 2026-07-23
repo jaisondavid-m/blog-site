@@ -35,7 +35,7 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: ./server
     container_name: blog_backend
     restart: unless-stopped
     depends_on:
@@ -45,14 +45,14 @@ services:
         condition: service_healthy
 
     volumes:
-      - ./backend/.env:/app/.env:ro
+      - ./server/.env:/app/.env:ro
       - uploads_data:/app/uploads
     networks:
       - internal
 
   web:
     build:
-      context: ./frontend
+      context: ./client
       args:
         VITE_API_URL: ${PUBLIC_URL}
     container_name: blog_web
