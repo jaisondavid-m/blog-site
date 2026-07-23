@@ -1,4 +1,4 @@
-FROM golang:1.26-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
@@ -12,13 +12,13 @@ RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /app/server .
 
 FROM alpine:3.20
 
-RUN apk add --no-cache ca-certificates tzdata
+RUN apk add --no-cache ca-certificates
 
 WORKDIR /app
 
 COPY --from=builder /app/server ./server
 
-RUN mkdir -p /app/uploads
+RUN mkdir uploads
 
 EXPOSE 8080
 

@@ -8,6 +8,10 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    command:
+      - --innodb-buffer-pool-size=128M
+      - --max-connections=50
+      - --performance-schema=OFF
     volumes:
       - mysql_data:/var/lib/mysql
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
@@ -23,6 +27,14 @@ services:
     image: redis:7-alpine
     container_name: blog_redis
     restart: unless-stopped
+    command:
+      - redis-server 
+      - --appendonly
+      - "yes"
+      - --maxmemory 
+      - 64mb 
+      - --maxmemory-policy 
+      - allkeys-lru
     volumes:
       - redis_data:/data
     networks:
@@ -32,6 +44,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - internal
 
   backend:
     build:
@@ -44,9 +58,16 @@ services:
       redis:
         condition: service_healthy
 
+    env_file:
+      - ./server/.env
+
     volumes:
-      - ./server/.env:/app/.env:ro
+      # - ./server/.env:/app/.env:ro
       - uploads_data:/app/uploads
+
+    expose:
+      = "8080"
+    
     networks:
       - internal
 
@@ -54,7 +75,7 @@ services:
     build:
       context: ./client
       args:
-        VITE_API_URL: ${PUBLIC_URL}
+        VITE_API_URL: /api
     container_name: blog_web
     restart: unless-stopped
     depends_on:
@@ -70,5 +91,5 @@ networks:
 
 volumes:
   mysql_data:
-  uploads_data:
   redis_data:
+  uploads_data:

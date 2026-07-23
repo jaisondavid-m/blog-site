@@ -4,3 +4,4 @@
 uploads/
 *.md
 tmp/
+Dockerfile
