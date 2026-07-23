@@ -1,5 +1,7 @@
 services:
   mysql:
+    cpus: "0.5"
+    mem_limit: 350m
     image: mysql:8.0
     container_name: blog_mysql
     restart: unless-stopped
@@ -9,8 +11,9 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     command:
-      - --innodb-buffer-pool-size=128M
-      - --max-connections=50
+      - --innodb-buffer-pool-size=64M
+      - --max-connections=20
+      - --table-open-cache=100
       - --performance-schema=OFF
     volumes:
       - mysql_data:/var/lib/mysql
@@ -18,12 +21,13 @@ services:
     networks:
       - internal
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "-p${MYSQL_ROOT_PASSWORD}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 5s
       timeout: 5s
       retries: 10
 
   redis:
+    mem_limit: 80m
     image: redis:7-alpine
     container_name: blog_redis
     restart: unless-stopped
@@ -32,7 +36,7 @@ services:
       - --appendonly
       - "yes"
       - --maxmemory 
-      - 64mb 
+      - 32mb 
       - --maxmemory-policy 
       - allkeys-lru
     volumes:
@@ -46,10 +50,19 @@ services:
       retries: 10
 
   backend:
+    cpus: "0.5"
+    mem_limit: 300m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     build:
       context: ./server
     container_name: blog_backend
     restart: unless-stopped
+    environment:
+      GOMEMLIMIT: "250MiB"
     depends_on:
       mysql:
         condition: service_healthy
@@ -70,6 +83,7 @@ services:
       - internal
 
   web:
+    mem_limit: 100m
     build:
       context: ./client
       args:
