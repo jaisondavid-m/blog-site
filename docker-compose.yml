@@ -15,7 +15,7 @@ services:
       - internal
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "-p${MYSQL_ROOT_PASSWORD}"]
-      internal: 5s
+      interval: 5s
       timeout: 5s
       retries: 10
 
