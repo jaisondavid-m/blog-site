@@ -96,7 +96,7 @@ func GetPosts(c *gin.Context) {
 		SELECT
 			p.id, p.uuid, p.author_id, u.first_name, u.last_name, u.avatar_url,
 			p.title, p.excerpt, p.tag, p.cover_image, p.views_count,
-			p.likes_count, p.comments_count, p.published_at, p.created_at
+			p.likes_count, p.comments_count, p.published_at, p.created_at,
 	`
 
 		if authed {
