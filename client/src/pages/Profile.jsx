@@ -680,6 +680,9 @@ function Profile() {
                                         A 6-digit code was sent to<br />
                                         <span className="font-semibold text-gray-700">{user?.Email}</span>
                                     </p>
+                                    <p className="text-[11.5px] text-amber-600 bg-amber-50 border bordre-amber-100 rounded-lg px-3 py-2 mt-3 text-center leading-snug" >
+                                        Don't see it? Check your spam/junk folder - the code is sent from <span className="font-semibold" >jaison7373@gmail.com</span>
+                                    </p>
                                 </div>
                                 {/* Count down */}
                                 <div className={`text-center text-xs font-bold mb-4 ${timeLeft <= 30 ? "text-red-500" : "text-gray-400"}`} >

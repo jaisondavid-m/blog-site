@@ -622,6 +622,9 @@ function ForgetPassword() {
                                             </span>
                                             . Enter it below to continue.
                                         </p>        
+                                        <p className="text-[12.5px] text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mt-3 leading-snug" >
+                                            Don't see it? Check your spam/hunk folder - the code is sent from <span className="font-semibold" >jaison7373@gmail.com</span>
+                                        </p>
                                     </div>
 
                                     {/* Countdown */}
