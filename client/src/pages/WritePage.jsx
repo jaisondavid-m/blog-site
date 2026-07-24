@@ -65,6 +65,12 @@ function WritePage() {
     const removeToast = (id) =>
         setToasts(p => p.filter(t => t.id !== id))
 
+    const handlePaste = (e) => {
+        e.preventDefault()
+        const text = e.clipboardData.getData("text/plain")
+        document.execCommand("insertText", false, text)
+    }
+
     const handleSubmit = async (submitStatus) => {
 
         const e = validate()
@@ -411,6 +417,7 @@ function WritePage() {
                             suppressContentEditableWarning
                             data-placeholder="Start writing your post..."
                             onInput={e => setContent(e.currentTarget.innerHTML)}
+                            onPaste={handlePaste}
                             className="min-h-[320px] px-5 py-4 text-[15px] text-gray-700 leading-relaxed"
                         />
                     </div>
