@@ -27,7 +27,7 @@ const avatarGradient = (name = "") => {
     return palettes[idx]
 }
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080"
+const BASE_URL = "https://json.hackclub.app"
 
 const StatCard = ({ icon: Icon, label, value, accent }) => {
     return (
