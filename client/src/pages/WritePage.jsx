@@ -66,9 +66,25 @@ function WritePage() {
         setToasts(p => p.filter(t => t.id !== id))
 
     const handlePaste = (e) => {
+
         e.preventDefault()
+
+        const items = e.clipboardData.items 
+
+        for (const item of items) {
+            if (item.type.startsWith("image/")) {
+                const file = item.getAsFile()
+                const reader = new FileReader()
+                reader.onload = () => {
+                    document.execCommand("insertImage",false, reader.result)
+                }
+                reader.readAsDataURL(file)
+            }
+        }
+
         const text = e.clipboardData.getData("text/plain")
         document.execCommand("insertText", false, text)
+
     }
 
     const handleSubmit = async (submitStatus) => {
@@ -420,6 +436,10 @@ function WritePage() {
                             onPaste={handlePaste}
                             className="min-h-[320px] px-5 py-4 text-[15px] text-gray-700 leading-relaxed"
                         />
+                        <p className="text-[11.5px] text-gray-400 mt-1.5 px-1" >
+                            Only plain text is pasted here - copying formatted content from other websites
+                            may not paste correctly. You can still paste image directly.
+                        </p>
                     </div>
                 </Field>
                 <div className="flex items-center justify-end gap-3 pt-2 pb-8" >
