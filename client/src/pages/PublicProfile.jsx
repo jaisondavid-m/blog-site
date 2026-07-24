@@ -15,7 +15,7 @@ import { AvatarGradient } from "../components/AvatarGradient.jsx"
 import StatCard from "../components/StatCard.jsx"
 import Loading from "../components/Loading.jsx"
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080"
+const BASE_URL = "https://json.hackclub.app"
 
 const intials = (first, last) => 
     `${first?.[0] ?? ""}${last?.[0] ?? ""}`.toUpperCase() || "?"
