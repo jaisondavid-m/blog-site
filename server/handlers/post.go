@@ -96,7 +96,7 @@ func GetPosts(c *gin.Context) {
 		SELECT
 			p.id, p.uuid, p.author_id, u.first_name, u.last_name, u.avatar_url,
 			p.title, p.excerpt, p.tag, p.cover_image, p.views_count,
-			p.likes_count, p.comments_count, p.published_at, p.created_at,
+			p.likes_count, p.comments_count, p.published_at, p.created_at
 	`
 
 		if authed {
@@ -263,7 +263,7 @@ func GetPost(c *gin.Context) {
 			SELECT
 				p.id, p.uuid, p.author_id, u.first_name, u.last_name, u.avatar_url,
 				p.title, p.excerpt, p.content, p.tag, p.cover_image, p.status,
-				p.views_count, p.likes_count, p.comments_count, p.published_at, p.created_at,
+				p.views_count, p.likes_count, p.comments_count, p.published_at, p.created_at
 			FROM blog_posts p
 			JOIN users u ON u.id = p.author_id
 			WHERE p.uuid = ? AND p.deleted_at IS NULL
@@ -315,12 +315,15 @@ func GetPost(c *gin.Context) {
 	}
 
 	if authed {
-		config.DB.QueryRow(
+		err := config.DB.QueryRow(
 			`SELECT
-				EXISTS(SELECT 1 FROM blog_likes b1 WHERE b1.post_id = p.id AND b1.user_id = ?) AS is_liked,
-				EXISTS(SELECT 1 FROM blog_bookmarks b2 WHERE b2.post_id = p.id AND b2.user_id = ?) AS is_bookmarked`,
+				EXISTS(SELECT 1 FROM blog_likes b1 WHERE b1.post_id = ? AND b1.user_id = ?) AS is_liked,
+				EXISTS(SELECT 1 FROM blog_bookmarks b2 WHERE b2.post_id = ? AND b2.user_id = ?) AS is_bookmarked`,
 			p.ID, userID, p.ID, userID,
 		).Scan(&p.IsLiked, &p.IsBookmarked)
+		if err != nil {
+			println(err.Error())
+		}
 	} else {
 		// query += `0 AS is_liked, 0 AS is_bookmarked`
 		p.IsLiked = false
