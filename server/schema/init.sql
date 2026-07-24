@@ -197,11 +197,11 @@ CREATE TABLE blog_bookmarks (
     UNIQUE KEY uq_bookmark (
         post_id,
         user_id
-    )
+    ),
 
     FOREIGN KEY (post_id)
         REFERENCES blog_posts(id)
-        ON DELETE CASCADE,
+        ON DELETE CASCADE,  
 
     FOREIGN KEY (user_id)
         REFERENCES users(id)
@@ -209,7 +209,7 @@ CREATE TABLE blog_bookmarks (
 );
 
 CREATE INDEX idx_bookmark_post ON blog_bookmarks(post_id);
-CREATE INDEX idx_bookmark_user ON blog_bookmarks(post_id);
+CREATE INDEX idx_bookmark_user ON blog_bookmarks(user_id);
 
 CREATE TABLE blog_posts_views (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -221,7 +221,7 @@ CREATE TABLE blog_posts_views (
     UNIQUE KEY uq_view_ip (post_id, ip_address),
     FOREIGN KEY (post_id) REFERENCES blog_posts(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
-)
+);
 
 
 CREATE TABLE blog_comment_likes (
@@ -265,7 +265,7 @@ CREATE TABLE notifications (
 
 );
 
-CREATE INDEX idx_notif_recipient ON notifications(recipient_id, is_read)
+CREATE INDEX idx_notif_recipient ON notifications(recipient_id, is_read);
 
 CREATE TABLE blog_post_reports (
 
