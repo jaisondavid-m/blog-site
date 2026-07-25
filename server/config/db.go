@@ -1,16 +1,15 @@
 package config
 
 import (
-
 	"database/sql"
 	"fmt"
 	"log"
 	"os"
+	"server/config"
 
 	// "github.com/joho/godotenv"
 
 	_ "github.com/go-sql-driver/mysql"
-
 )
 
 var DB *sql.DB
