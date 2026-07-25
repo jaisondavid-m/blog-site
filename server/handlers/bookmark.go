@@ -94,7 +94,7 @@ func GetBookmarks(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to fetch bookmarks",
+			"error": err.Error(),
 		})
 		return
 	}
