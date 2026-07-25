@@ -78,4 +78,24 @@ This setup provides an isolated, scalable and reproducible deployement environme
 
 ---
 
+## Runing Locally
+
+The easiest way to run the entire stack locally is using Docker and Docker Compose.
+
+### Prerequisities
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) installed and running on your machine.
+
+### Quick Start
+
+1. **Clone the repository**
+    ```bash
+    git clone https://github.com/jaisondavid-m/blog-site.git
+    ```
+
+2. Configure .env
+3. **Build and start the containers**
+    docker compose up --build -d
+
+---
+
 *Built as a learning project to get hands-on with a real auth flow, moderation tooling and a threaded comment system - not just CRUD.
