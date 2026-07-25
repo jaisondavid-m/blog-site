@@ -3,6 +3,8 @@ import { replace, useSearchParams, useNavigate } from "react-router-dom"
 import { registerUser, loginUser , getMe, guestLogin } from "../api/auth.api.js"
 import { useAuth } from "../context/AuthContext.jsx"
 
+import TermsModal from "../components/TermsModal.jsx"
+
 import {
 
     FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiArrowRight,
@@ -354,6 +356,9 @@ function AuthPage() {
     const [remember, setRemember] = useState(false)
     const [showLogPw, setShowLogPw] = useState(false)
 
+    const [policyOpen, setPolicyOpen] = useState(false)
+    const [policyTab, setPolicyTab] = useState("terms")
+
     const [guestLoading, setGuestLoading] = useState(false)
 
     /* Toast helper */
@@ -690,7 +695,22 @@ function AuthPage() {
                                         <label className="flex items-start gap-2 text-sm text-gray-600">
                                             <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
                                             <span>
-                                                I agree to the Terms of Service and Privacy Policy
+                                                I agree to the{" "}
+                                                <button
+                                                    type="button"
+                                                    className="font-bold text-indigo-600 hover:text-indigo-800 underline"
+                                                    onClick={() => { setPolicyTab("terms"); setPolicyOpen(true) }}
+                                                >
+                                                    Terms of Service 
+                                                </button>
+                                                and{" "}
+                                                <button
+                                                    type="button"
+                                                    className="font-bold text-indigo-600 hover:text-indigo-800 underline"
+                                                    onClick={() => {setPolicyTab("privacy"); setPolicyOpen(true)}}
+                                                >
+                                                    Privacy Policy
+                                                </button>
                                             </span>
                                         </label>
                                         {errors.agreed && (
@@ -722,6 +742,15 @@ function AuthPage() {
                     </div>
                 </main>
             </div>
+            <TermsModal
+                open={policyOpen}
+                initialTab={policyTab}
+                onClose={() => setPolicyOpen(false)}
+                onAgree={() => {
+                    setAgreed(true)
+                    setPolicyOpen(false)
+                }}
+            />
         </>
     )
 
