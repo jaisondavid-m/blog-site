@@ -52,7 +52,7 @@ function Footer() {
                         {[
                             { label: "Home" , path: "/home" },
                             { label: "Trending Writers", path: "/writers/trending" },
-                            { label: "Trending Posts", path: "/post/trending" },
+                            { label: "Trending Posts", path: "/home?trending=true" },
                         ].map(({label, path}) => (
                             <Link
                                 key={label}
