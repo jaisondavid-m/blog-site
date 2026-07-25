@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"server/config"
+	// "server/config"
 
 	// "github.com/joho/godotenv"
 
