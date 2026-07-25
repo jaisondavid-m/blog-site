@@ -108,16 +108,21 @@ func GetBookmarks(c *gin.Context) {
 		var p models.Post
 		var lastName, avatar, excerpt, tag, cover sql.NullString
 		var publishedAt sql.NullTime
+		var commentsCount sql.NullInt64
 
 		if err := rows.Scan(
 			&p.ID, &p.UUID, &p.AuthorID, &p.AuthorName, &lastName, &avatar,
 			&p.Title, &excerpt, &tag, &cover, &p.ViewsCount,
-			&p.LikesCount, &p.CommentCount, &publishedAt, &p.CreatedAt,
+			&p.LikesCount, &commentsCount, &publishedAt, &p.CreatedAt,
 		); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Failed to read bookmarks",
 			})
 			return
+		}
+
+		if commentsCount.Valid {
+			p.CommentCount = uint(commentsCount.Int64)
 		}
 
 		if lastName.Valid {
@@ -137,6 +142,13 @@ func GetBookmarks(c *gin.Context) {
 
 		posts = append(posts, p)
 
+	}
+
+	if err := rows.Err(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
