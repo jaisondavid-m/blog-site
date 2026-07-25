@@ -86,7 +86,7 @@ func GetBookmarks(c *gin.Context) {
 			p.likes_count, p.comments_count, p.published_at, p.created_at
 		FROM blog_bookmarks b
 		JOIN blog_posts p ON p.id = b.post_id
-		JOIN users U on u.id = p.author_id
+		JOIN users u on u.id = p.author_id
 		WHERE b.user_id = ? AND p.deleted_at IS NULL
 		ORDER BY b.created_at DESC
 		LIMIT ? OFFSET ?
