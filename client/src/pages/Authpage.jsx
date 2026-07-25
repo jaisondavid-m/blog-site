@@ -703,7 +703,7 @@ function AuthPage() {
                                                 >
                                                     Terms of Service 
                                                 </button>
-                                                and{" "}
+                                                {" "}and{" "}
                                                 <button
                                                     type="button"
                                                     className="font-bold text-indigo-600 hover:text-indigo-800 underline"
