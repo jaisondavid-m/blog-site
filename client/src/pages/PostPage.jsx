@@ -227,7 +227,7 @@ function PostPage() {
 
 
     const avatarSrc = post.author_avatar ? `${BASE_URL}${post.author_avatar}` : null
-    const coverSrc = post.cover_image ? `${BASE_URL}${post.cover_image}` : null
+    const coverSrc = post.cover_image ? `${post.cover_image}` : null
 
     const linkifyMentions = (html) =>
         html.replace(/@([a-zA-Z0-9_]+)/g, (_, username) =>
