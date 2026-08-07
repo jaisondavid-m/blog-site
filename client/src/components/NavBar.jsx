@@ -69,7 +69,7 @@ function NavBar() {
                                 <FiZap className="text-white" size={18} />
                             </div>
                             <span className="text-lg font-bold text-gray-900" >
-                                BlogSite
+                                The Blog Bench
                             </span>
                         </Link>
                         <nav className="hidden md:flex items-center gap-8" >

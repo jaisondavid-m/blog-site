@@ -16,7 +16,7 @@ function Footer() {
                                 <FiZap size={18}/>
                             </div>
                             <span className="font-['Bricolage_Grotesque'] text-[18px] font-extrabold text-gray-900 tracking-tight" >
-                                BlogSite
+                                The Blog Bench
                             </span>
                         </div>
                         <p className="text-[13.5px] text-gray-500 leading-relaxed max-w-[220px] mb-5" >
@@ -87,7 +87,7 @@ function Footer() {
                 </div>
                 <div className="border-t border-gray-200 py-5 flex flex-col sm:flex-row items-center justify-between gap-2" >
                     <p className="text-[12.5px] text-gray-400" >
-                       &copy; {new Date().getFullYear()} BlogSite. All rights reserved.
+                       &copy; {new Date().getFullYear()} The Blog Bench. All rights reserved.
                     </p>
                     {/* <div className="flex gap-5" >
 

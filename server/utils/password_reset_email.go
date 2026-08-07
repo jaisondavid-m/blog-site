@@ -21,7 +21,7 @@ func SendPasswordResetEmail(to, otp string) error {
 				<div style="height:6px;background:#4f46e5;" ></div>
 				<div style="padding:36px 32px;" >
 					<p style="color:#4f46e5;font-weight:600;font-size:22px;letter-spacing:1px;text-transform:uppercase;margin:0 0 20px;" >
-						Blog-Site
+						The Blog Bench
 					</p>
 					<h2 style="color:#1e1b4b;margin:0 0 8px;font-size:22px;" >Reset your password</h2>
 					<p style="color:#6b7280;font-size:14px;line-height:1.6;margin:0 0 28px; >
@@ -44,7 +44,7 @@ func SendPasswordResetEmail(to, otp string) error {
 				</div>
 				<div style="background:#fafafa;padding:20px 32px;border-top:1px solid #f0f0f0;" >
 					<p  style="color:#b0b3aa;font-size:11px;margin:0;text-align:center">
-						© 2026 Blog-Site. All rights reserved.
+						© 2026 The Blog Bench. All rights reserved.
 					</p>
 				</div>
 			</div>
@@ -52,7 +52,7 @@ func SendPasswordResetEmail(to, otp string) error {
 		// <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;" >
 		// 	<h2 style="color:#1e1b4b;margin-bottom:4px;">Password Reset</h2>
 		// 	<p style="color:#6b7280;">
-		// 		We received a request to reset the password for your Blog-Site account.
+		// 		We received a request to reset the password for your The Blog Bench account.
 		// 	</p>
 		// 	<div style="background:#f5f3ff;border-radius:12px;padding:24px;margin:24px 0;text-align:center;">
 		// 		<p style="color:#6b7280;font-size:13px;margin:0 0 8px;">Your one-time code</p>

@@ -522,7 +522,7 @@ function AuthPage() {
                                 <FiZap size={20} className="text-white" />
                             </div>
                             <span className="text-[20px] font-extrabold text-slate-50 tracking-tight font-['Bricolage_Grotesque']">
-                                Blog-Site
+                                The Blog Bench
                             </span>
                         </div>
 
