@@ -37,6 +37,24 @@ A full-stack bloggin platform where people can write, publish and discover posts
 - Rate limiting on sensitive actions (login, registeration, OTP requests, password resets, post creation) to stop abuse
 - Caching on hot endpoints like post feed and profiles, invalidated automatically when the underlying data changes
 
+## Screenshots
+
+### Login
+
+<img src="./client/images/img1.png" width="900">
+
+### Home Feed
+
+<img src="./client/images/img2.png" width="900">
+
+### Profile
+
+<img src="./client/images/img3.png" width="900">
+
+### Write a Post
+
+<img src="./client/images/img4.png" width="900">
+
 ## Under the hood
 
 **Backend** - Go with Gin framework, MySQL for storage and Redis for rate limiting and caching. Auth is handled with JWTs stored in an HTTP-only cookie. Emails (OTPs, notifications) go out through SMTP via gomail.
