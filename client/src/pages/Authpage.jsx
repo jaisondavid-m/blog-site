@@ -504,49 +504,11 @@ function AuthPage() {
                 input[type="checkbox"] { accent-color: #6366f1; }
             `}</style>
             <div className="min-h-screen flex font-['Plus_Jakarta_Sans'] bg-slate-50">
-                {/* ══════════ LEFT PANEL  ══════════  */}
-                <aside className="hidden lg:flex w-[440px] flex-shrink-0 flex-col justify-between bg-[#0a0f1e] px-11 py-11 relative overflow-hidden">
-                    {/* Radial glows */}
-                    <div
-                        className="absolute inset-0 pointer-events-none"
-                        style={{ background: "radial-gradient(ellipse at 30% 20%, rgba(99,102,241,0.18) 0%,transparent 60%), radial-gradient(ellipse at 80% 80%, rgba(79.70,229,0.12) 0%, transparent 55%)" }}
-                    />
-                    <div className="absolute -top-20 -right-20 w-72 h-72 border border-indigo-500/10 rounded-full pointer-events-none" />
-                    <div className="absolute bottom-16 -left-14 w-56 h-56 border border-indigo-500/8 rounded-full pointer-events-none" />
-
-                    {/* Top Section */}
-                    <div className="relative">
-                        {/* Logo */}
-                        <div className="flex items-center gap-3 mb-14">
-                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center">
-                                <FiZap size={20} className="text-white" />
-                            </div>
-                            <span className="text-[20px] font-extrabold text-slate-50 tracking-tight font-['Bricolage_Grotesque']">
-                                The Blog Bench
-                            </span>
-                        </div>
-
-                        {/* Badge */}
-                        <div className="inline-flex items-center gap-1.5 bg-indigo-500/15 border border-indigo-500/25 rounded-full px-3 py-1.5 mb-5">
-                            <FiStar size={11} className="text-indigo-400" />
-                            <span className="text-[11.5px] font-bold text-indigo-400 tracking-widest uppercase">Trusted by Our Team(me)</span>
-                        </div>
-
-                        {/* Headline */}
-                        <h1 className="font-['Bricolage_Grotesque'] text-[38px] font-extrabold text-slate-50 leading-[1.12] tracking-tight mb-4">
-                            Discover Storis{" "}
-                            <span className="bg-gradient-to-r from-indigo-300 to-indigo-300 bg-clip-text text-transparent">
-                                That Matter.
-                            </span>
-                        </h1>
-                        <p className="text-[15.5px] text-slate-500 leading-relaxed mb-10">
-                            Read, write and share insightful blogs with a growing community of writers.
-                        </p>
-                    </div>
-                </aside>
                 {/* RIGHT PANEL */}
                 <main className="flex-1 flex items-center justify-center p-6 overflow-y-auto">
+                    
                     <div className="w-full max-w-[460px]">
+                        <h1 className="text-bold text-5xl font-mono text-center my-5 tracking-tight underline " >THE BLOG BENCH</h1>
                         {/* Tab Switcher */}
                         <div className="flex bg-gray-100 rounded-2xl p-1.5 mb-9 border border-gray-200">
                             {[
